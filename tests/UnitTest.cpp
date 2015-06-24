@@ -1,11 +1,11 @@
 #include <iostream>
 #include "gtest/gtest.h"
-#include "hummingbird/solve/Dimension.h"
+#include "hummingbird/solve/Unit.h"
 
 using namespace std;
 using namespace hummingbird;
 
-TEST(UnitsTest, Start)
+TEST(UnitTest, Start)
 {
 	Unit<float, Mass> m1(1.5);
 	Unit<float, Mass> m2(1.4);

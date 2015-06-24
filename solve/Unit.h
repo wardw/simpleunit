@@ -98,6 +98,9 @@ using Velocity = Dimension<0,1,-1>;
 Unit<float, Mass> kilogram(1.0);
 
 template <typename T>
+std::ostream& operator<<(std::ostream& os, const Unit<T, Mass>& mps)
+{ return os << mps.value() << " m/s"; }
+
 template <typename T>
 std::ostream& operator<<(std::ostream& os, const Unit<T, Velocity>& mps)
 { return os << mps.value() << " m/s"; }
