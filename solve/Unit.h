@@ -115,11 +115,11 @@ Unit<float, Mass> gram(0.001);
 
 template <typename T>
 std::ostream& operator<<(std::ostream& os, const Unit<T, Mass>& unit)
-{ return os << unit.value() << " kg"; }
+{ return os << unit.value() << " L"; }
 
 template <typename T>
 std::ostream& operator<<(std::ostream& os, const Unit<T, Velocity>& unit)
-{ return os << unit.value() << " m/s"; }
+{ return os << unit.value() << " L/T"; }
 
 
 // Start of Quantity
@@ -252,6 +252,13 @@ using Millimeter = Quantity<float, std::milli>;
 
 using Meter_d = Unit<Meter, Length>;
 
+std::ostream& operator<<(std::ostream& os, const Meter& q)
+{ return os << q.value() << " m"; }
 
+std::ostream& operator<<(std::ostream& os, const Centimeter& q)
+{ return os << q.value() << " cm"; }
+
+std::ostream& operator<<(std::ostream& os, const Millimeter& q)
+{ return os << q.value() << " mm"; }
 
 }

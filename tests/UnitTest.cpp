@@ -243,7 +243,11 @@ TEST(UnitTest, QuantityCast)
 TEST(UnitTest, MemberCast)
 {
 	Millimeter a(7);
-	auto val = a.as<Meter>();
-	EXPECT_EQ(9, a.asVal<Meter>());
-	cout << "As Meter: " << a.as<Meter>();
+	Meter b(a);
+	EXPECT_FLOAT_EQ(0.007, a.asVal<Meter>());
+	cout << "Original: " << a.as() << endl;
+	cout << "As Meter: " << a.as<Meter>() << endl;
+	cout << "a + b = " << a + b << endl;
+	cout << "a + b + c = " << a + b + Centimeter(127) << endl;
+	cout << "a + b + c = " << (a + b + Centimeter(127)).as<Centimeter>() << endl;
 }
