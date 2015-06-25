@@ -162,6 +162,14 @@ TEST(UnitTest, BinaryAdd)
 	EXPECT_EQ(3190, (c + c2).value());
 	EXPECT_EQ(1, decltype(c+c2)::unit::num);
 	EXPECT_EQ(72, decltype(c+c2)::unit::den);
+	auto value = (c+c2).value();
+	EXPECT_EQ(1, std::is_integral<decltype(value)>::value);
+
+	Quantity<int, ratio<7,8>> d(10);
+	Quantity<float, ratio<8,9>> d2(40);
+	EXPECT_EQ(3190, (d + d2).value());
+	auto value2 = (d + d2).value();
+	EXPECT_EQ(1, std::is_floating_point<decltype(value2)>::value);
 }
 
 TEST(UnitTest, BinaryMultiply)
@@ -211,3 +219,31 @@ TEST(UnitTest, BinaryDivide)
 	// d / e;
 }
 
+TEST(UnitTest, QuantityCast)
+{
+	Quantity<int, ratio<4,3>> a(7);
+	auto a1 = quantity_cast<Quantity<int, ratio<3,2>>>(a);
+	EXPECT_EQ(6, a1.value());
+	EXPECT_EQ(3, decltype(a1)::unit::num);
+	EXPECT_EQ(2, decltype(a1)::unit::den);
+
+	Quantity<float, ratio<4,3>> b(7);
+	auto b1 = quantity_cast<Quantity<int, ratio<3,2>>>(b);
+	EXPECT_EQ(6, b1.value());
+
+	Quantity<int, ratio<4,3>> c(7);
+	auto c1 = quantity_cast<Quantity<float, ratio<3,2>>>(c);
+	EXPECT_FLOAT_EQ(56.f/9, c1.value());
+
+	Quantity<float, ratio<4,3>> d(7);
+	auto d1 = quantity_cast<Quantity<float, ratio<3,2>>>(d);
+	EXPECT_FLOAT_EQ(56.f/9, d1.value());
+}
+
+TEST(UnitTest, MemberCast)
+{
+	Millimeter a(7);
+	auto val = a.as<Meter>();
+	EXPECT_EQ(9, a.asVal<Meter>());
+	cout << "As Meter: " << a.as<Meter>();
+}

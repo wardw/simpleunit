@@ -121,8 +121,22 @@ template <typename T>
 std::ostream& operator<<(std::ostream& os, const Unit<T, Velocity>& unit)
 { return os << unit.value() << " m/s"; }
 
+
+// Start of Quantity
+
 template <typename R1, typename R2>
 using IsMultiple = std::integral_constant<bool, (R1::num*R2::den) % (R2::num*R1::den) == 0>;
+
+template <typename T, typename Ratio>
+class Quantity;
+
+template <typename ToQuantity, typename X, typename R1>
+ToQuantity quantity_cast(const Quantity<X,R1>& quantity)
+{
+	using R = typename ToQuantity::unit;
+	using Y = typename ToQuantity::rep;
+	return ToQuantity(static_cast<Y>(quantity.value()) * R1::num*R::den / (R1::den*R::num));
+}
 
 template <typename T, typename Ratio = std::ratio<1>>
 class Quantity
@@ -158,6 +172,12 @@ public:
 	T& value() { return value_; }
 	const T& value() const { return value_; }
 
+	template <typename Q = Quantity<T,Ratio>>
+	Q as() const { return quantity_cast<Q>(*this); }
+
+	template <typename Q = Quantity<T,Ratio>>
+	T asVal() const { return quantity_cast<Q>(*this).value(); }
+
 	Quantity& operator+=(const Quantity& rhs) { value_ += rhs.value(); return *this; }
 	Quantity& operator-=(const Quantity& rhs) { value_ -= rhs.value(); return *this; }
 	template <typename X>
@@ -173,7 +193,6 @@ private:
 	T value_;
 };
 
-
 template <typename R1, typename R2>
 using BaseUnit = std::ratio<1, R1::den*R2::den>;
 
@@ -183,14 +202,11 @@ using CommonDuration = typename std::common_type<std::chrono::duration<X,R1>, st
 template <typename Duration>
 using CommonQuantity = Quantity<typename Duration::rep, typename Duration::period>;
 
-template <typename X, typename Y, typename R1, typename R2>
-CommonQuantity<CommonDuration<X,Y,R1,R2>> operator+(const Quantity<X,R1>& lhs, const Quantity<Y,R2>& rhs)
+template <typename X, typename Y, typename R1, typename R2, typename ToQuantity = CommonQuantity<CommonDuration<X,Y,R1,R2>>>
+ToQuantity operator+(const Quantity<X,R1>& lhs, const Quantity<Y,R2>& rhs)
 {
-	using R = typename CommonDuration<X,Y,R1,R2>::period; // our new common base ratio
-
-	// division should always divide evenly as long as our common base ratio R is correct
-	return CommonQuantity<CommonDuration<X,Y,R1,R2>>((lhs.value() * R1::num*R::den / (R1::den*R::num)) +
-	                                                 (rhs.value() * R2::num*R::den / (R2::den*R::num)));
+	using R = typename ToQuantity::unit;
+	return ToQuantity(quantity_cast<Quantity<X,R>>(lhs).value() + quantity_cast<Quantity<Y,R>>(rhs).value());
 }
 
 template <typename X, typename Y, typename R>
@@ -219,7 +235,6 @@ MulType<X,Y> operator/(const Quantity<X,R>& lhs, const Quantity<Y,R>& rhs)
 
 
 
-
 // Later
 
 // template <typename X, typename Y, typename R1, typename R2>
@@ -232,8 +247,8 @@ MulType<X,Y> operator/(const Quantity<X,R>& lhs, const Quantity<Y,R>& rhs)
 // Helper types
 
 using Meter = Quantity<float, std::ratio<1,1>>;
-using Centimeter = Quantity<int, std::ratio<1,100>>;
-using Millimeter = Quantity<int, std::milli>;
+using Centimeter = Quantity<float, std::ratio<1,100>>;
+using Millimeter = Quantity<float, std::milli>;
 
 using Meter_d = Unit<Meter, Length>;
 
