@@ -159,6 +159,11 @@ public:
 	const T& value() const { return value_; }
 
 	Quantity& operator+=(const Quantity& rhs) { value_ += rhs.value(); return *this; }
+	Quantity& operator-=(const Quantity& rhs) { value_ -= rhs.value(); return *this; }
+	template <typename X>
+	Quantity& operator*=(const X& x) { value_ *= x; return *this; }
+	template <typename X>
+	Quantity& operator/=(const X& x) { value_ /= x; return *this; }
 
 	friend std::ostream& operator<<(std::ostream& os, const Quantity& q) {
 		return os << q.value() << " (" << Ratio::num << "/" << Ratio::den << ")";
@@ -168,6 +173,7 @@ private:
 	T value_;
 };
 
+// Todo: make use of common_type specialisation for chrono::duration
 template <typename R1, typename R2>
 using BaseUnit = std::ratio<1, R1::den*R2::den>;
 
@@ -178,11 +184,40 @@ Quantity<AddType<X,Y>, BaseUnit<R1,R2>> operator+(const Quantity<X,R1>& lhs, con
 												   R2::num * R1::den * rhs.value());
 }
 
-template <typename X, typename Y, typename R1, typename R2>
-Quantity<MulType<X,Y>, std::ratio_multiply<R1,R2>> operator*(const Quantity<X,R1>& lhs, const Quantity<Y,R2>& rhs)
+template <typename X, typename Y, typename R>
+Quantity<MulType<X,Y>, R> operator*(const Quantity<X,R>& lhs, const Y& y)
 {
-	return Quantity<MulType<X,Y>, std::ratio_multiply<R1,R2>>(lhs.value() * rhs.value());
+	return Quantity<MulType<X,Y>, R>(lhs.value() * y);
 }
+
+template <typename X, typename Y, typename R>
+Quantity<MulType<X,Y>, R> operator*(const Y& y, const Quantity<X,R>& rhs)
+{
+	return Quantity<MulType<X,Y>, R>(rhs.value() * y);
+}
+
+template <typename X, typename Y, typename R>
+Quantity<MulType<X,Y>, R> operator/(const Quantity<X,R>& lhs, const Y& y)
+{
+	return Quantity<MulType<X,Y>, R>(lhs.value() / y);
+}
+
+template <typename X, typename Y, typename R>
+MulType<X,Y> operator/(const Quantity<X,R>& lhs, const Quantity<Y,R>& rhs)
+{
+	return MulType<X,Y>(lhs.value() / rhs.value());
+}
+
+
+
+
+// Later
+
+// template <typename X, typename Y, typename R1, typename R2>
+// Quantity<MulType<X,Y>, std::ratio_multiply<R1,R2>> operator*(const Quantity<X,R1>& lhs, const Quantity<Y,R2>& rhs)
+// {
+// 	return Quantity<MulType<X,Y>, std::ratio_multiply<R1,R2>>(lhs.value() * rhs.value());
+// }
 
 
 // Helper types

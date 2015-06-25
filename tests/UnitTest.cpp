@@ -45,7 +45,7 @@ TEST(UnitTest, Units)
 
 	cout << decltype(u)::num << "/" << u.den << endl;
 
-	cout << height * length;
+	//cout << height * length;
 
 	ratio_add<ratio<2,5>,ratio<1,3>> r2;
 	cout << decltype(r2)::num << "/" << r2.den << endl;
@@ -72,28 +72,131 @@ TEST(UnitTest, Units)
 TEST(UnitTest, ImplicitConversion)
 {
 	// Implicit conversion - only available when source is an exact multiple of target ratio type
-	Quantity<int, ratio<4,3>> ai(10);
-	Quantity<int, ratio<1,3>> ai2(ai);
-	//Quantity<int, ratio<1,1>> ai3(ai); // error
-	EXPECT_EQ(10, ai.value());
-	EXPECT_EQ(40, ai2.value());
-	cout << "ai: " << ai << "  ai2: " << ai2 << endl;
+	Quantity<int, ratio<4,3>> a(10);
+	Quantity<int, ratio<1,3>> a2(a);
+	//Quantity<int, ratio<1,1>> ai3(a); // error
+	EXPECT_EQ(10, a.value());
+	EXPECT_EQ(40, a2.value());
+	cout << "a: " << a << "  a2: " << a2 << endl;
 
 	// // Narrowing of value coefficient - requires explicit cast
-	Quantity<float, ratio<1,1>> bf(10);
-	//Quantity<int, ratio<1,1>> bi(bf);
-	//cout << "bf: " << bf << "  bi: " << bi << endl;
+	Quantity<float, ratio<1,1>> b(10);
+	//Quantity<int, ratio<1,1>> b2(b);
+	//cout << "b: " << b << "  b2: " << b2 << endl;
 
 	// If target is floating-point, conversions are always possilbe
-	Quantity<int, ratio<4,3>> ci(10);
-	Quantity<float, ratio<1,1>> cf(ci);
-	EXPECT_EQ(10, ci.value());
-	EXPECT_FLOAT_EQ(40.f/3, cf.value());
-	cout << "ci: " << ci << "  cf: " << cf << endl;
+	Quantity<int, ratio<4,3>> c(10);
+	Quantity<float, ratio<1,1>> c2(c);
+	EXPECT_EQ(10, c.value());
+	EXPECT_FLOAT_EQ(40.f/3, c2.value());
+	cout << "c: " << c << "  c2: " << c2 << endl;
 
-	Quantity<float, ratio<4,3>> df1(10);
-	Quantity<float, ratio<1,1>> df2(df1);
-	EXPECT_EQ(10, ci.value());
-	EXPECT_FLOAT_EQ(40.f/3, cf.value());
-	cout << "df1: " << df1 << "  df2: " << df2 << endl;
+	Quantity<float, ratio<4,3>> d(10);
+	Quantity<float, ratio<1,1>> d2(d);
+	EXPECT_EQ(10, c.value());
+	EXPECT_FLOAT_EQ(40.f/3, c2.value());
+	cout << "d: " << d << "  d2: " << d2 << endl;
 }
+
+TEST(UnitTest, CompoundAssignment)
+{
+	// Compound assignment with implicit conversion
+
+	Quantity<int, ratio<4,3>> a(10);
+	Quantity<int, ratio<1,3>> a2(40);
+	a2 += a;
+	// a += a2; // Should not compile: no viable overloaded '+='
+	EXPECT_EQ(80, a2.value());
+
+	Quantity<int, ratio<4,3>> c(10);
+	Quantity<float, ratio<1,1>> c2(40.f/3);
+	c2 += c;
+	// c += c2; // Should not compile: no viable overloaded '+='
+	EXPECT_FLOAT_EQ(80.f/3, c2.value());
+
+	Quantity<float, ratio<4,3>> d(10);
+	Quantity<float, ratio<1,1>> d2(40.f/3);
+	d2 += d;
+	// d += d2; // Should not compile: no viable overloaded '+='
+	EXPECT_FLOAT_EQ(80.f/3, d2.value());
+}
+
+TEST(UnitTest, CompoundAssignmentOthers)
+{
+	Quantity<int, ratio<4,3>> a(10);
+	Quantity<int, ratio<1,3>> a2(40);
+	EXPECT_EQ(80, (a2 += a).value());
+
+	Quantity<int, ratio<4,3>> b(10);
+	Quantity<int, ratio<1,3>> b2(20);
+	EXPECT_EQ(-20, (b2 -= b).value());
+
+	Quantity<int, ratio<4,3>> c(7);
+	EXPECT_EQ(14, (c *= 2).value());
+
+	Quantity<int, ratio<4,3>> d(7);
+	EXPECT_EQ(3, (d /= 2).value());
+	EXPECT_EQ(1, (d /= 2.f).value());
+
+	Quantity<float, ratio<4,3>> e(7);
+	EXPECT_FLOAT_EQ(3.5f, (e /= 2).value());
+	EXPECT_FLOAT_EQ(1.75f, (e /= 2.f).value());
+}
+
+TEST(UnitTest, BinaryAdd)
+{
+	Quantity<int, ratio<4,3>> a(10);
+	Quantity<int, ratio<1,3>> a2(40);
+
+	// This works, but current implementation doesn't find the lowest common multiple for the base
+	EXPECT_EQ(240, (a + a2).value()); // but of ratio (1/9) [want (1/3)]
+	cout << (a+a2);
+}
+
+TEST(UnitTest, BinaryMultiply)
+{
+	Quantity<int, ratio<4,3>> a(10);
+	EXPECT_EQ(20, (a * 2).value());
+	EXPECT_EQ(20, (2 * a).value());
+
+	Quantity<float, ratio<4,3>> b(10.25f);
+	EXPECT_EQ(20.5f, (b * 2).value());
+	EXPECT_EQ(20.5f, (2 * b).value());
+}
+
+TEST(UnitTest, BinaryDivide)
+{
+	Quantity<int, ratio<4,3>> a1(7);
+	EXPECT_EQ(3, (a1 / 2).value());  // integer division
+
+	Quantity<int, ratio<4,3>> a2(7);
+	EXPECT_EQ(3.5f, (a2 / 2.f).value());
+
+	Quantity<float, ratio<4,3>> a3(7.f);
+	EXPECT_EQ(3.5f, (a3 / 2).value());
+
+	Quantity<float, ratio<4,3>> a4(7.f);
+	EXPECT_EQ(3.5f, (a4 / 2.f).value());
+
+	Quantity<int, ratio<4,3>> b(7);
+	Quantity<int, ratio<4,3>> c(2);
+	EXPECT_EQ(3, (b / c));
+
+	Quantity<int, ratio<4,3>> b1(7);
+	Quantity<float, ratio<4,3>> c1(2);
+	EXPECT_EQ(3.5f, (b1 / c1));
+
+	Quantity<float, ratio<4,3>> b2(7);
+	Quantity<int, ratio<4,3>> c2(2);
+	EXPECT_EQ(3.5f, (b2 / c2));
+
+	Quantity<float, ratio<4,3>> b3(7);
+	Quantity<float, ratio<4,3>> c3(2);
+	EXPECT_EQ(3.5f, (b3 / c3));
+
+	// Any division under different bases is a compile error
+	Quantity<float, ratio<4,3>> d(7);
+	Quantity<int, ratio<1,3>> e(2);
+	// d / e;
+}
+
