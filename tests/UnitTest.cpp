@@ -71,15 +71,29 @@ TEST(UnitTest, Units)
 
 TEST(UnitTest, ImplicitConversion)
 {
-	Quantity<int, ratio<1,1>> a1(1);
-	Quantity<int, ratio<1,3>> a2(1);
-	//Quantity<int, ratio<1,1>> a3fail(a2);
-	Quantity<int, ratio<1,6>> a3(a2);
+	// Implicit conversion - only available when source is an exact multiple of target ratio type
+	Quantity<int, ratio<4,3>> ai(10);
+	Quantity<int, ratio<1,3>> ai2(ai);
+	//Quantity<int, ratio<1,1>> ai3(ai); // error
+	EXPECT_EQ(10, ai.value());
+	EXPECT_EQ(40, ai2.value());
+	cout << "ai: " << ai << "  ai2: " << ai2 << endl;
 
-	Quantity<int, ratio<1,3>> a4(a1);
-	cout << "a4 " << a4 << endl;
-	a3 += a4;
-	cout << "a3 " << a4 << endl;
+	// // Narrowing of value coefficient - requires explicit cast
+	Quantity<float, ratio<1,1>> bf(10);
+	//Quantity<int, ratio<1,1>> bi(bf);
+	//cout << "bf: " << bf << "  bi: " << bi << endl;
 
+	// If target is floating-point, conversions are always possilbe
+	Quantity<int, ratio<4,3>> ci(10);
+	Quantity<float, ratio<1,1>> cf(ci);
+	EXPECT_EQ(10, ci.value());
+	EXPECT_FLOAT_EQ(40.f/3, cf.value());
+	cout << "ci: " << ci << "  cf: " << cf << endl;
 
+	Quantity<float, ratio<4,3>> df1(10);
+	Quantity<float, ratio<1,1>> df2(df1);
+	EXPECT_EQ(10, ci.value());
+	EXPECT_FLOAT_EQ(40.f/3, cf.value());
+	cout << "df1: " << df1 << "  df2: " << df2 << endl;
 }

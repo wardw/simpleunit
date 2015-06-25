@@ -1,10 +1,10 @@
 #include <iostream>
 
 
-// NFUL. No frills units library inspired on Barton & Nackman's Dimensional Analysis (Ch 16.5)
-// and combined with std::ratio
+// Experimental no frills units library inspired on Barton & Nackman's Dimensional Analysis (Ch 16.5)
+// for dimension handling and std::chrono library / std::ratio for units of measurement.
 
-// Library consists of a minimal subset of features ..
+// A very minimal subset of features originally as required for problems in classical mechanics
 
 namespace
 {
@@ -133,25 +133,27 @@ public:
 
 	Quantity(const T& val) : value_(val) {}
 
+	// Notice no case covers integral T but floating-point X
 	template < typename X, typename R1,
-		typename = std::enable_if_t<
-			IsMultiple<R1,Ratio>::value &&
+		typename std::enable_if_t<
 		    std::is_integral<T>::value &&
-		    std::is_integral<X>::value> >
+		    std::is_integral<X>::value &&
+			IsMultiple<R1,Ratio>::value, int > = 0 >
 	Quantity(const Quantity<X,R1>& rhs) {
 		// New value is target quantity / this ratio, which enable_if guarantees to divide evenly
 		value_ = rhs.value() * R1::num * Ratio::den / (R1::den * Ratio::num);
 	}
 
-	// template < typename X, typename R1,
-	// 	typename = std::enable_if_t<
-	// 		//IsMultiple<R1,Ratio>::value &&
-	// 	    std::is_floating_point<T>::value &&
-	// 	    std::is_floating_point<X>::value> >
-	// Quantity(const Quantity<X,R1>& rhs) {
-	// 	// New value is target quantity / this ratio, which enable_if guarantees to divide evenly
-	// 	value_ = rhs.value() * R1::num * Ratio::den / (R1::den * Ratio::num);
-	// }
+	// The seemingly redundant `std::is_floating_point<X>::value` seems required to
+	// make this overload conditionally dependent on X (otherwise a fail instantiating Quantity<T>)
+	template < typename X, typename R1,
+		typename std::enable_if_t<
+		    (std::is_floating_point<T>::value && std::is_floating_point<X>::value) ||
+		    (std::is_floating_point<T>::value && !std::is_floating_point<X>::value), int> = 0 >
+	Quantity(const Quantity<X,R1>& rhs) {
+		// New value is target quantity / this ratio, which enable_if guarantees to divide evenly
+		value_ = rhs.value() * static_cast<T>(R1::num * Ratio::den) / static_cast<T>(R1::den * Ratio::num);
+	}
 
 	T& value() { return value_; }
 	const T& value() const { return value_; }
