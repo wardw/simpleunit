@@ -147,10 +147,21 @@ TEST(UnitTest, BinaryAdd)
 {
 	Quantity<int, ratio<4,3>> a(10);
 	Quantity<int, ratio<1,3>> a2(40);
+	EXPECT_EQ(80, (a + a2).value());
+	EXPECT_EQ(1, decltype(a+a2)::unit::num);
+	EXPECT_EQ(3, decltype(a+a2)::unit::den);
 
-	// This works, but current implementation doesn't find the lowest common multiple for the base
-	EXPECT_EQ(240, (a + a2).value()); // but of ratio (1/9) [want (1/3)]
-	cout << (a+a2);
+	Quantity<int, ratio<2,3>> b(10);
+	Quantity<int, ratio<4,3>> b2(40);
+	EXPECT_EQ(90, (b + b2).value());
+	EXPECT_EQ(2, decltype(b+b2)::unit::num);
+	EXPECT_EQ(3, decltype(b+b2)::unit::den);
+
+	Quantity<int, ratio<7,8>> c(10);
+	Quantity<int, ratio<8,9>> c2(40);
+	EXPECT_EQ(3190, (c + c2).value());
+	EXPECT_EQ(1, decltype(c+c2)::unit::num);
+	EXPECT_EQ(72, decltype(c+c2)::unit::den);
 }
 
 TEST(UnitTest, BinaryMultiply)

@@ -1,5 +1,5 @@
 #include <iostream>
-
+#include <chrono>
 
 // Experimental no frills units library inspired on Barton & Nackman's Dimensional Analysis (Ch 16.5)
 // for dimension handling and std::chrono library / std::ratio for units of measurement.
@@ -173,15 +173,24 @@ private:
 	T value_;
 };
 
-// Todo: make use of common_type specialisation for chrono::duration
+
 template <typename R1, typename R2>
 using BaseUnit = std::ratio<1, R1::den*R2::den>;
 
 template <typename X, typename Y, typename R1, typename R2>
-Quantity<AddType<X,Y>, BaseUnit<R1,R2>> operator+(const Quantity<X,R1>& lhs, const Quantity<Y,R2>& rhs)
+using CommonDuration = typename std::common_type<std::chrono::duration<X,R1>, std::chrono::duration<Y,R2>>::type;
+
+template <typename Duration>
+using CommonQuantity = Quantity<typename Duration::rep, typename Duration::period>;
+
+template <typename X, typename Y, typename R1, typename R2>
+CommonQuantity<CommonDuration<X,Y,R1,R2>> operator+(const Quantity<X,R1>& lhs, const Quantity<Y,R2>& rhs)
 {
-	return Quantity<AddType<X,Y>, BaseUnit<R1,R2>>(R1::num * R2::den * lhs.value() +
-												   R2::num * R1::den * rhs.value());
+	using R = typename CommonDuration<X,Y,R1,R2>::period; // our new common base ratio
+
+	// division should always divide evenly as long as our common base ratio R is correct
+	return CommonQuantity<CommonDuration<X,Y,R1,R2>>((lhs.value() * R1::num*R::den / (R1::den*R::num)) +
+	                                                 (rhs.value() * R2::num*R::den / (R2::den*R::num)));
 }
 
 template <typename X, typename Y, typename R>
