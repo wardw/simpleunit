@@ -251,3 +251,41 @@ TEST(UnitTest, MemberCast)
 	cout << "a + b + c = " << a + b + Centimeter(127) << endl;
 	cout << "a + b + c = " << (a + b + Centimeter(127)).as<Centimeter>() << endl;
 }
+
+TEST(UnitTest, BinaryMultiplyDim)
+{
+	// Same tests as BinaryAdd, but with dimension checking
+
+	Quantity<int, ratio<4,3>, Dimension<1,0,0>> a1(10);
+	Quantity<int, ratio<1,3>, Dimension<1,0,0>> a2(40);
+	EXPECT_EQ(1600, (a1 * a2).value());
+	EXPECT_EQ(1, decltype(a1+a2)::unit::num);
+	EXPECT_EQ(3, decltype(a1+a2)::unit::den);
+	EXPECT_EQ(2, int(decltype(a1*a2)::dim::d1));
+	// dim::d1 is a compile time constant, error if used directly (the macro must take a pointer / reference)
+
+	Quantity<int, ratio<2,3>, Dimension<1,0,0>> b1(10);
+	Quantity<int, ratio<4,3>, Dimension<0,1,0>> b2(40);
+	EXPECT_EQ(800, (b1 * b2).value());
+	EXPECT_EQ(2, decltype(b1*b2)::unit::num);
+	EXPECT_EQ(3, decltype(b1*b2)::unit::den);
+	EXPECT_EQ(1, int(decltype(b1*b2)::dim::d1));
+	EXPECT_EQ(1, int(decltype(b1*b2)::dim::d2));
+
+	Quantity<int, ratio<7,8>, Dimension<1,-1,1>> c1(10);
+	Quantity<int, ratio<8,9>, Dimension<0, 1,2>> c2(40);
+	EXPECT_EQ(1612800, (c1*c2).value());
+	EXPECT_EQ(1, decltype(c1*c2)::unit::num);
+	EXPECT_EQ(72, decltype(c1*c2)::unit::den);
+	auto value = (c1 * c2).value();
+	EXPECT_EQ(1, std::is_integral<decltype(value)>::value);
+	EXPECT_EQ(1, int(decltype(c1*c2)::dim::d1));
+	EXPECT_EQ(0, int(decltype(c1*c2)::dim::d2));
+	EXPECT_EQ(3, int(decltype(c1*c2)::dim::d3));
+
+	Quantity<int, ratio<7,8>> d1(10);
+	Quantity<float, ratio<8,9>> d2(40);
+	EXPECT_EQ(1612800, (d1 * d2).value());
+	auto value2 = (d1 * d2).value();
+	EXPECT_EQ(1, std::is_floating_point<decltype(value2)>::value);
+}
