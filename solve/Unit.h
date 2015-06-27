@@ -44,86 +44,10 @@ Dimension<m1-m2, l1-l2, t1-t2> operator/(Dimension<m1, l1, t1> lhs,
 	return Dimension<m1-m2, l1-l2, t1-t2>();
 }
 
-template <typename T, typename D>
-class Unit
-{
-public:
-	explicit Unit(const T& val) : value_(val) {}
-
-	T& value() { return value_; }
-	const T& value() const { return value_; }
-
-	Unit& operator+=(const Unit& rhs) { value_ += rhs; return *this; }
-	Unit& operator-=(const Unit& rhs) { value_ -= rhs; return *this; }
-	template <typename S>
-	Unit& operator*=(const S& rhs) { value_ *= rhs; return *this; }
-	template <typename S>
-	Unit& operator/=(const S& rhs) { value_ /= rhs; return *this; }
-
-private:
-	T value_;
-
-	friend std::ostream& operator<<(std::ostream& os, const Unit& quantity) {
-		return os << quantity.value_ << " units";
-	}
-};
-
-
-
-template <typename X, typename Y, typename D>
-Unit<AddType<X,Y>, D> operator+(const Unit<X,D>& lhs,
-	                            const Unit<Y,D>& rhs) {
-	return Unit<AddType<X,Y>, D>(lhs.value() + rhs.value());
-}
-
-template <typename X, typename Y, typename D>
-Unit<AddType<X,Y>, D> operator-(const Unit<X,D>& lhs,
-	                            const Unit<Y,D>& rhs) {
-	return Unit<AddType<X,Y>, D>(lhs.value() - rhs.value());
-}
-
-template <typename T, typename D, typename S>
-Unit<T,D> operator*(Unit<T,D> copy, const S& rhs) {
-	return copy *= rhs;
-}
-
-template <typename T, typename D, typename S>
-Unit<T,D> operator*(const S& lhs, Unit<T, D> copy) {
-	return copy *= lhs;
-}
-
-template <typename T, typename D, typename S>
-Unit<T,D> operator/(Unit<T,D> copy, const S& rhs) {
-	return copy /= rhs;
-}
-
-template <typename X, typename Y, typename D1, typename D2>
-Unit<MulType<X,Y>, MulType<D1,D2>> operator*(const Unit<X,D1>& lhs,
-	                                         const Unit<Y,D2>& rhs) {
-	return Unit<MulType<X,Y>, MulType<D1,D2>>(lhs.value() * rhs.value());
-}
-
-template <typename X, typename Y, typename D1, typename D2>
-Unit<MulType<X,Y>, DivType<D1,D2>> operator/(const Unit<X,D1>& lhs,
-	                                         const Unit<Y,D2>& rhs) {
-	return Unit<MulType<X,Y>, DivType<D1,D2>>(lhs.value() / rhs.value());
-}
-
 using Mass = Dimension<1,0,0>;
 using Length = Dimension<0,1,0>;
 using Time = Dimension<0,0,1>;
 using Velocity = Dimension<0,1,-1>;
-
-Unit<float, Mass> kilogram(1.0);
-Unit<float, Mass> gram(0.001);
-
-template <typename T>
-std::ostream& operator<<(std::ostream& os, const Unit<T, Mass>& unit)
-{ return os << unit.value() << " L"; }
-
-template <typename T>
-std::ostream& operator<<(std::ostream& os, const Unit<T, Velocity>& unit)
-{ return os << unit.value() << " L/T"; }
 
 
 // Start of Quantity
@@ -285,7 +209,6 @@ using Centimeter2 = Quantity<float, std::ratio<1,100>, Dimension<2,0,0>>;
 
 using Millimeter = Quantity<float, std::milli>;
 
-using Meter_d = Unit<Meter, Length>;
 
 std::ostream& operator<<(std::ostream& os, const Meter& q)
 { return os << q.value() << " m"; }
