@@ -4,7 +4,7 @@
 #include "hummingbird/solve/Unit.h"
 
 using namespace std;
-using namespace hummingbird;
+using namespace nufl;
 
 TEST(UnitTest, ImplicitConversion)
 {
@@ -103,6 +103,8 @@ TEST(UnitTest, UnitCast)
 
 TEST(UnitTest, MemberCast)
 {
+	using namespace SI;
+
 	Millimeter a(7);
 	Meter b(a);
 	EXPECT_FLOAT_EQ(0.007, a.asVal<Meter>());

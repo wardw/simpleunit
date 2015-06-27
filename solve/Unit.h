@@ -23,13 +23,13 @@ namespace
 }
 
 
-namespace hummingbird {
+namespace nufl {
 
-template <int m, int l, int t>
+template <int D1, int D2, int D3>
 struct Dimension {
-	static constexpr int d1 = m;
-	static constexpr int d2 = l;
-	static constexpr int d3 = t;
+	static constexpr int d1 = D1;
+	static constexpr int d2 = D2;
+	static constexpr int d3 = D3;
 };
 
 template <int m1, int l1, int t1, int m2, int l2, int t2>
@@ -44,10 +44,6 @@ Dimension<m1-m2, l1-l2, t1-t2> operator/(Dimension<m1, l1, t1> lhs,
 	return Dimension<m1-m2, l1-l2, t1-t2>();
 }
 
-using Mass = Dimension<1,0,0>;
-using Length = Dimension<0,1,0>;
-using Time = Dimension<0,0,1>;
-using Velocity = Dimension<0,1,-1>;
 
 
 // Start of Unit
@@ -201,29 +197,44 @@ Unit<MulType<X,Y>,R,D> operator/(const Unit<X,R,D>& lhs, const Y& y)
 
 // Helper types
 
-using Meter = Unit<float, std::ratio<1,1>>;
-using Meter2 = Unit<float, std::ratio<1,1>, Dimension<2,0,0>>;
+namespace SI {
 
-using Centimeter = Unit<float, std::ratio<1,100>>;
-using Centimeter2 = Unit<float, std::ratio<1,100>, Dimension<2,0,0>>;
+// Fundamental dimensions
 
-using Millimeter = Unit<float, std::milli>;
+using Mass = nufl::Dimension<1,0,0>;
+using Length = nufl::Dimension<0,1,0>;
+using Time = nufl::Dimension<0,0,1>;
+
+// Derived dimensions
+
+using Velocity = nufl::Dimension<0,1,-1>;
+
+// Fundamental units
+
+using Meter = nufl::Unit<float, std::ratio<1,1>>;
+using Meter2 = nufl::Unit<float, std::ratio<1,1>, Dimension<2,0,0>>;
+using Centimeter = nufl::Unit<float, std::ratio<1,100>>;
+using Centimeter2 = nufl::Unit<float, std::ratio<1,100>, Dimension<2,0,0>>;
+using Millimeter = nufl::Unit<float, std::milli>;
+
+// Derived units
+
+// Todo: broken!
+using MeterPerSecond = Unit<float, Meter, Velocity>;
 
 
-std::ostream& operator<<(std::ostream& os, const Meter& q)
+} // SI
+
+std::ostream& operator<<(std::ostream& os, const SI::Meter& q)
 { return os << q.value() << " m"; }
-
-std::ostream& operator<<(std::ostream& os, const Centimeter& q)
+std::ostream& operator<<(std::ostream& os, const SI::Centimeter& q)
 { return os << q.value() << " cm"; }
-
-std::ostream& operator<<(std::ostream& os, const Millimeter& q)
+std::ostream& operator<<(std::ostream& os, const SI::Millimeter& q)
 { return os << q.value() << " mm"; }
 
-
-std::ostream& operator<<(std::ostream& os, const Meter2& q)
+std::ostream& operator<<(std::ostream& os, const SI::Meter2& q)
 { return os << q.value() << " m^2"; }
-
-std::ostream& operator<<(std::ostream& os, const Centimeter2& q)
+std::ostream& operator<<(std::ostream& os, const SI::Centimeter2& q)
 { return os << q.value() << " cm^2"; }
 
-}
+} // nufl
