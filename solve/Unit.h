@@ -207,12 +207,23 @@ using CommonDuration = typename std::common_type<std::chrono::duration<X,R1>, st
 template <typename Duration, typename D>
 using CommonQuantity = Quantity<typename Duration::rep, typename Duration::period, D>;
 
+
+// Quantity + - * / Quantity
+
 template <typename X, typename Y, typename R1, typename R2, typename D,
           typename ToQuantity = CommonQuantity<CommonDuration<X,Y,R1,R2>,D>>
 ToQuantity operator+(const Quantity<X,R1,D>& lhs, const Quantity<Y,R2,D>& rhs)
 {
 	using R = typename ToQuantity::unit;
 	return ToQuantity(quantity_cast<Quantity<X,R>>(lhs).value() + quantity_cast<Quantity<Y,R>>(rhs).value());
+}
+
+template <typename X, typename Y, typename R1, typename R2, typename D,
+          typename ToQuantity = CommonQuantity<CommonDuration<X,Y,R1,R2>,D>>
+ToQuantity operator-(const Quantity<X,R1,D>& lhs, const Quantity<Y,R2,D>& rhs)
+{
+	using R = typename ToQuantity::unit;
+	return ToQuantity(quantity_cast<Quantity<X,R>>(lhs).value() - quantity_cast<Quantity<Y,R>>(rhs).value());
 }
 
 template <typename X, typename Y, typename R1, typename R2, typename D1, typename D2,
@@ -223,32 +234,44 @@ ToQuantity operator*(const Quantity<X,R1,D1>& lhs, const Quantity<Y,R2,D2>& rhs)
 	return ToQuantity(quantity_cast<Quantity<X,R>>(lhs).value() * quantity_cast<Quantity<Y,R>>(rhs).value());
 }
 
-template <typename X, typename Y, typename R,
-          typename = std::enable_if_t<std::is_arithmetic<Y>::value>>
-Quantity<MulType<X,Y>, R> operator*(const Quantity<X,R>& lhs, const Y& y)
+template <typename X, typename Y, typename R1, typename R2, typename D1, typename D2,
+          typename ToQuantity = CommonQuantity<CommonDuration<X,Y,R1,R2>,DivType<D1,D2>>>
+ToQuantity operator/(const Quantity<X,R1,D1>& lhs, const Quantity<Y,R2,D2>& rhs)
 {
-	return Quantity<MulType<X,Y>, R>(lhs.value() * y);
+	using R = typename ToQuantity::unit;
+	return ToQuantity(quantity_cast<Quantity<X,R>>(lhs).value() / quantity_cast<Quantity<Y,R>>(rhs).value());
 }
 
-template <typename X, typename Y, typename R,
-          typename = std::enable_if_t<std::is_arithmetic<Y>::value>>
-Quantity<MulType<X,Y>, R> operator*(const Y& y, const Quantity<X,R>& rhs)
-{
-	return Quantity<MulType<X,Y>, R>(rhs.value() * y);
-}
-
-template <typename X, typename Y, typename R>
-Quantity<MulType<X,Y>, R> operator/(const Quantity<X,R>& lhs, const Y& y)
-{
-	return Quantity<MulType<X,Y>, R>(lhs.value() / y);
-}
-
-template <typename X, typename Y, typename R>
-MulType<X,Y> operator/(const Quantity<X,R>& lhs, const Quantity<Y,R>& rhs)
+// todo
+template <typename X, typename Y, typename R, typename D>
+MulType<X,Y> operator/(const Quantity<X,R,D>& lhs, const Quantity<Y,R,D>& rhs)
 {
 	return MulType<X,Y>(lhs.value() / rhs.value());
 }
 
+
+// Scalar * * / Quantity
+
+template <typename X, typename Y, typename R, typename D,
+          typename = std::enable_if_t<std::is_arithmetic<Y>::value>>
+Quantity<MulType<X,Y>,R,D> operator*(const Quantity<X,R,D>& lhs, const Y& y)
+{
+	return Quantity<MulType<X,Y>,R,D>(lhs.value() * y);
+}
+
+template <typename X, typename Y, typename R, typename D,
+          typename = std::enable_if_t<std::is_arithmetic<Y>::value>>
+Quantity<MulType<X,Y>,R,D> operator*(const Y& y, const Quantity<X,R,D>& rhs)
+{
+	return Quantity<MulType<X,Y>,R,D>(rhs.value() * y);
+}
+
+template <typename X, typename Y, typename R, typename D,
+          typename = std::enable_if_t<std::is_arithmetic<Y>::value>>
+Quantity<MulType<X,Y>,R,D> operator/(const Quantity<X,R,D>& lhs, const Y& y)
+{
+	return Quantity<MulType<X,Y>,R,D>(lhs.value() / y);
+}
 
 
 
