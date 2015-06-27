@@ -50,31 +50,31 @@ using Time = Dimension<0,0,1>;
 using Velocity = Dimension<0,1,-1>;
 
 
-// Start of Quantity
+// Start of Unit
 
 template <typename R1, typename R2>
 using IsMultiple = std::integral_constant<bool, (R1::num*R2::den) % (R2::num*R1::den) == 0>;
 
 template <typename T, typename Ratio, typename Dimension>
-class Quantity;
+class Unit;
 
-template <typename ToQuantity, typename X, typename R1, typename D>
-ToQuantity quantity_cast(const Quantity<X,R1,D>& quantity)
+template <typename ToUnit, typename X, typename R1, typename D>
+ToUnit unit_cast(const Unit<X,R1,D>& unit)
 {
-	using R = typename ToQuantity::unit;
-	using Y = typename ToQuantity::rep;
-	return ToQuantity(static_cast<Y>(quantity.value()) * R1::num*R::den / (R1::den*R::num));
+	using R = typename ToUnit::unit;
+	using Y = typename ToUnit::rep;
+	return ToUnit(static_cast<Y>(unit.value()) * R1::num*R::den / (R1::den*R::num));
 }
 
 template <typename T, typename Ratio = std::ratio<1>, typename Dim = Dimension<1,0,0>>
-class Quantity
+class Unit
 {
 public:
 	using rep = T;
 	using unit = Ratio;
 	using dim = Dim;
 
-	Quantity(const T& val) : value_(val) {}
+	Unit(const T& val) : value_(val) {}
 
 	// Notice no case covers integral T but floating-point X
 	template < typename X, typename R1,
@@ -82,39 +82,39 @@ public:
 		    std::is_integral<T>::value &&
 		    std::is_integral<X>::value &&
 			IsMultiple<R1,Ratio>::value, int > = 0 >
-	Quantity(const Quantity<X,R1>& rhs) {
-		// New value is target quantity / this ratio, which enable_if guarantees to divide evenly
+	Unit(const Unit<X,R1>& rhs) {
+		// New value is target unit / this ratio, which enable_if guarantees to divide evenly
 		value_ = rhs.value() * R1::num * Ratio::den / (R1::den * Ratio::num);
 	}
 
 	// The seemingly redundant `std::is_floating_point<X>::value` seems required to
-	// make this overload conditionally dependent on X (otherwise a fail instantiating Quantity<T>)
+	// make this overload conditionally dependent on X (otherwise a fail instantiating Unit<T>)
 	template < typename X, typename R1,
 		typename std::enable_if_t<
 		    (std::is_floating_point<T>::value && std::is_floating_point<X>::value) ||
 		    (std::is_floating_point<T>::value && !std::is_floating_point<X>::value), int> = 0 >
-	Quantity(const Quantity<X,R1>& rhs) {
-		// New value is target quantity / this ratio, which enable_if guarantees to divide evenly
+	Unit(const Unit<X,R1>& rhs) {
+		// New value is target unit / this ratio, which enable_if guarantees to divide evenly
 		value_ = rhs.value() * static_cast<T>(R1::num * Ratio::den) / static_cast<T>(R1::den * Ratio::num);
 	}
 
 	T& value() { return value_; }
 	const T& value() const { return value_; }
 
-	template <typename Q = Quantity<T,Ratio>>
-	Q as() const { return quantity_cast<Q>(*this); }
+	template <typename Q = Unit<T,Ratio>>
+	Q as() const { return unit_cast<Q>(*this); }
 
-	template <typename Q = Quantity<T,Ratio>>
-	T asVal() const { return quantity_cast<Q>(*this).value(); }
+	template <typename Q = Unit<T,Ratio>>
+	T asVal() const { return unit_cast<Q>(*this).value(); }
 
-	Quantity& operator+=(const Quantity& rhs) { value_ += rhs.value(); return *this; }
-	Quantity& operator-=(const Quantity& rhs) { value_ -= rhs.value(); return *this; }
+	Unit& operator+=(const Unit& rhs) { value_ += rhs.value(); return *this; }
+	Unit& operator-=(const Unit& rhs) { value_ -= rhs.value(); return *this; }
 	template <typename X>
-	Quantity& operator*=(const X& x) { value_ *= x; return *this; }
+	Unit& operator*=(const X& x) { value_ *= x; return *this; }
 	template <typename X>
-	Quantity& operator/=(const X& x) { value_ /= x; return *this; }
+	Unit& operator/=(const X& x) { value_ /= x; return *this; }
 
-	friend std::ostream& operator<<(std::ostream& os, const Quantity& q) {
+	friend std::ostream& operator<<(std::ostream& os, const Unit& q) {
 		return os << q.value() << " (" << Ratio::num << "/" << Ratio::den << ") [" << Dim::d1 << "," << Dim::d2 << "," << Dim::d3 << "]";
 	}
 
@@ -129,85 +129,85 @@ template <typename X, typename Y, typename R1, typename R2>
 using CommonDuration = typename std::common_type<std::chrono::duration<X,R1>, std::chrono::duration<Y,R2>>::type;
 
 template <typename Duration, typename D>
-using CommonQuantity = Quantity<typename Duration::rep, typename Duration::period, D>;
+using CommonUnit = Unit<typename Duration::rep, typename Duration::period, D>;
 
 
-// Quantity + - * / Quantity
+// Unit + - * / Unit
 
 template <typename X, typename Y, typename R1, typename R2, typename D,
-          typename ToQuantity = CommonQuantity<CommonDuration<X,Y,R1,R2>,D>>
-ToQuantity operator+(const Quantity<X,R1,D>& lhs, const Quantity<Y,R2,D>& rhs)
+          typename ToUnit = CommonUnit<CommonDuration<X,Y,R1,R2>,D>>
+ToUnit operator+(const Unit<X,R1,D>& lhs, const Unit<Y,R2,D>& rhs)
 {
-	using R = typename ToQuantity::unit;
-	return ToQuantity(quantity_cast<Quantity<X,R>>(lhs).value() + quantity_cast<Quantity<Y,R>>(rhs).value());
+	using R = typename ToUnit::unit;
+	return ToUnit(unit_cast<Unit<X,R>>(lhs).value() + unit_cast<Unit<Y,R>>(rhs).value());
 }
 
 template <typename X, typename Y, typename R1, typename R2, typename D,
-          typename ToQuantity = CommonQuantity<CommonDuration<X,Y,R1,R2>,D>>
-ToQuantity operator-(const Quantity<X,R1,D>& lhs, const Quantity<Y,R2,D>& rhs)
+          typename ToUnit = CommonUnit<CommonDuration<X,Y,R1,R2>,D>>
+ToUnit operator-(const Unit<X,R1,D>& lhs, const Unit<Y,R2,D>& rhs)
 {
-	using R = typename ToQuantity::unit;
-	return ToQuantity(quantity_cast<Quantity<X,R>>(lhs).value() - quantity_cast<Quantity<Y,R>>(rhs).value());
+	using R = typename ToUnit::unit;
+	return ToUnit(unit_cast<Unit<X,R>>(lhs).value() - unit_cast<Unit<Y,R>>(rhs).value());
 }
 
 template <typename X, typename Y, typename R1, typename R2, typename D1, typename D2,
-          typename ToQuantity = CommonQuantity<CommonDuration<X,Y,R1,R2>,MulType<D1,D2>>>
-ToQuantity operator*(const Quantity<X,R1,D1>& lhs, const Quantity<Y,R2,D2>& rhs)
+          typename ToUnit = CommonUnit<CommonDuration<X,Y,R1,R2>,MulType<D1,D2>>>
+ToUnit operator*(const Unit<X,R1,D1>& lhs, const Unit<Y,R2,D2>& rhs)
 {
-	using R = typename ToQuantity::unit;
-	return ToQuantity(quantity_cast<Quantity<X,R>>(lhs).value() * quantity_cast<Quantity<Y,R>>(rhs).value());
+	using R = typename ToUnit::unit;
+	return ToUnit(unit_cast<Unit<X,R>>(lhs).value() * unit_cast<Unit<Y,R>>(rhs).value());
 }
 
 template <typename X, typename Y, typename R1, typename R2, typename D1, typename D2,
-          typename ToQuantity = CommonQuantity<CommonDuration<X,Y,R1,R2>,DivType<D1,D2>>>
-ToQuantity operator/(const Quantity<X,R1,D1>& lhs, const Quantity<Y,R2,D2>& rhs)
+          typename ToUnit = CommonUnit<CommonDuration<X,Y,R1,R2>,DivType<D1,D2>>>
+ToUnit operator/(const Unit<X,R1,D1>& lhs, const Unit<Y,R2,D2>& rhs)
 {
-	using R = typename ToQuantity::unit;
-	return ToQuantity(quantity_cast<Quantity<X,R>>(lhs).value() / quantity_cast<Quantity<Y,R>>(rhs).value());
+	using R = typename ToUnit::unit;
+	return ToUnit(unit_cast<Unit<X,R>>(lhs).value() / unit_cast<Unit<Y,R>>(rhs).value());
 }
 
 // todo
 template <typename X, typename Y, typename R, typename D>
-MulType<X,Y> operator/(const Quantity<X,R,D>& lhs, const Quantity<Y,R,D>& rhs)
+MulType<X,Y> operator/(const Unit<X,R,D>& lhs, const Unit<Y,R,D>& rhs)
 {
 	return MulType<X,Y>(lhs.value() / rhs.value());
 }
 
 
-// Scalar * * / Quantity
+// Scalar * * / Unit
 
 template <typename X, typename Y, typename R, typename D,
           typename = std::enable_if_t<std::is_arithmetic<Y>::value>>
-Quantity<MulType<X,Y>,R,D> operator*(const Quantity<X,R,D>& lhs, const Y& y)
+Unit<MulType<X,Y>,R,D> operator*(const Unit<X,R,D>& lhs, const Y& y)
 {
-	return Quantity<MulType<X,Y>,R,D>(lhs.value() * y);
+	return Unit<MulType<X,Y>,R,D>(lhs.value() * y);
 }
 
 template <typename X, typename Y, typename R, typename D,
           typename = std::enable_if_t<std::is_arithmetic<Y>::value>>
-Quantity<MulType<X,Y>,R,D> operator*(const Y& y, const Quantity<X,R,D>& rhs)
+Unit<MulType<X,Y>,R,D> operator*(const Y& y, const Unit<X,R,D>& rhs)
 {
-	return Quantity<MulType<X,Y>,R,D>(rhs.value() * y);
+	return Unit<MulType<X,Y>,R,D>(rhs.value() * y);
 }
 
 template <typename X, typename Y, typename R, typename D,
           typename = std::enable_if_t<std::is_arithmetic<Y>::value>>
-Quantity<MulType<X,Y>,R,D> operator/(const Quantity<X,R,D>& lhs, const Y& y)
+Unit<MulType<X,Y>,R,D> operator/(const Unit<X,R,D>& lhs, const Y& y)
 {
-	return Quantity<MulType<X,Y>,R,D>(lhs.value() / y);
+	return Unit<MulType<X,Y>,R,D>(lhs.value() / y);
 }
 
 
 
 // Helper types
 
-using Meter = Quantity<float, std::ratio<1,1>>;
-using Meter2 = Quantity<float, std::ratio<1,1>, Dimension<2,0,0>>;
+using Meter = Unit<float, std::ratio<1,1>>;
+using Meter2 = Unit<float, std::ratio<1,1>, Dimension<2,0,0>>;
 
-using Centimeter = Quantity<float, std::ratio<1,100>>;
-using Centimeter2 = Quantity<float, std::ratio<1,100>, Dimension<2,0,0>>;
+using Centimeter = Unit<float, std::ratio<1,100>>;
+using Centimeter2 = Unit<float, std::ratio<1,100>, Dimension<2,0,0>>;
 
-using Millimeter = Quantity<float, std::milli>;
+using Millimeter = Unit<float, std::milli>;
 
 
 std::ostream& operator<<(std::ostream& os, const Meter& q)
