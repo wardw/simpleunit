@@ -11,7 +11,7 @@ namespace
 {
 	// Todo: I could use std::common_type
 	// + which is already defined for built-ins (X,Y)
-	// + and overloading for Dimension would be to replace the existing Dimension operators (?)
+	// + and overloading for Dim would be to replace the existing Dim operators (?)
 
 	template <typename X, typename Y>
 	using AddType = decltype(std::declval<X>() + std::declval<Y>());
@@ -27,35 +27,35 @@ namespace
 namespace nufl {
 
 template <int D1, int D2=0, int D3=0>
-struct Dimension {
+struct Dim {
 	static constexpr int d1 = D1;
 	static constexpr int d2 = D2;
 	static constexpr int d3 = D3;
 };
 
 template <int m1, int l1, int t1, int m2, int l2, int t2>
-Dimension<m1+m2, l1+l2, t1+t2> operator*(Dimension<m1, l1, t1> lhs,
-	                                     Dimension<m2, l2, t2> rhs) {
-	return Dimension<m1+m2, l1+l2, t1+t2>();
+Dim<m1+m2, l1+l2, t1+t2> operator*(Dim<m1, l1, t1> lhs,
+	                                     Dim<m2, l2, t2> rhs) {
+	return Dim<m1+m2, l1+l2, t1+t2>();
 }
 
 template <int a1, int a2, int a3, int b1, int b2, int b3>
-using DimMultiply = Dimension<a1+b1, a2+b2, a3+b3>;
+using DimMultiply = Dim<a1+b1, a2+b2, a3+b3>;
 
 template <int m1, int l1, int t1, int m2, int l2, int t2>
-Dimension<m1-m2, l1-l2, t1-t2> operator/(Dimension<m1, l1, t1> lhs,
-	                                     Dimension<m2, l2, t2> rhs) {
-	return Dimension<m1-m2, l1-l2, t1-t2>();
+Dim<m1-m2, l1-l2, t1-t2> operator/(Dim<m1, l1, t1> lhs,
+	                                     Dim<m2, l2, t2> rhs) {
+	return Dim<m1-m2, l1-l2, t1-t2>();
 }
 
 template <int D1, int D2, int D3>
-Dimension<D1, D2, D3> operator+(Dimension<D1, D2, D3> lhs,
-	                            Dimension<D1, D2, D3> rhs) {
-	return Dimension<D1, D2, D3>();
+Dim<D1, D2, D3> operator+(Dim<D1, D2, D3> lhs,
+	                            Dim<D1, D2, D3> rhs) {
+	return Dim<D1, D2, D3>();
 }
 
 // Later: rename Base
-template <typename Dim = Dimension<1>,
+template <typename Dim = Dim<1>,
           typename R1 = std::ratio<1>, typename R2 = std::ratio<1>, typename R3 = std::ratio<1>>
 struct Base {
 	using dim = Dim;
@@ -269,19 +269,19 @@ namespace si {
 // Base dimensions
 
 
-template <typename r = std::ratio<1>> using Length = Base<Dimension<1>, r>;
-template <typename r = std::ratio<1>> using Length2 = Base<Dimension<2>, r>;
-template <typename r = std::ratio<1>> using Time = Base<Dimension<0,1>, r>;
-template <typename r = std::ratio<1>> using Time2 = Base<Dimension<0,2>, r>;
-template <typename r = std::ratio<1>> using Mass = Base<Dimension<0,0,1>, r>;
+template <typename r = std::ratio<1>> using Length = Base<Dim<1>, r>;
+template <typename r = std::ratio<1>> using Length2 = Base<Dim<2>, r>;
+template <typename r = std::ratio<1>> using Time = Base<Dim<0,1>, r>;
+template <typename r = std::ratio<1>> using Time2 = Base<Dim<0,2>, r>;
+template <typename r = std::ratio<1>> using Mass = Base<Dim<0,0,1>, r>;
 
 
 
 // Derived dimensions
 
-template <typename r1, typename r2> using Velocity = Base<Dimension<1,-1>, r1, r2>;
-template <typename r1, typename r2> using Acceleration = Base<Dimension<1,-2>, r1, r2>;
-template <typename r1, typename r2, typename r3> using Force = Base<Dimension<1,1,-2>, r1, r2, r3>;
+template <typename r1, typename r2> using Velocity = Base<Dim<1,-1>, r1, r2>;
+template <typename r1, typename r2> using Acceleration = Base<Dim<1,-2>, r1, r2>;
+template <typename r1, typename r2, typename r3> using Force = Base<Dim<1,1,-2>, r1, r2, r3>;
 
 
 // Useful ratios
@@ -302,7 +302,7 @@ using Millimeter = Unit<float, Length<std::milli>>;
 using Inch = Unit<float, Length<std::ratio<39>>>;
 
 template <int n, int d>
-using BaseRatio = Base<Dimension<1>, std::ratio<n,d>>;
+using BaseRatio = Base<Dim<1>, std::ratio<n,d>>;
 
 // Derived units
 
