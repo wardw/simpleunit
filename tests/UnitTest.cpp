@@ -4,9 +4,8 @@
 #include "hummingbird/solve/Unit.h"
 
 using namespace std;
-using namespace nufl;
-using namespace nufl::si;
-
+using namespace nful;
+//using namespace nful::si;
 
 TEST(UnitTest, ImplicitConversion)
 {
@@ -160,7 +159,7 @@ TEST(UnitTest, UnitCastDim)
 
 	// A unit cast only casts between units of equal dimensions.
 	Unit<float, Base<Dim<1,0,1>, ratio<4,3>, ratio<4,3>, ratio<4,3>>> c(7);
-	// Should not compile: invalid operands to binary expression ('nufl::Dim<1, 0, 1>' and 'nufl::Dim<1, 1, 1>')
+	// Should not compile: invalid operands to binary expression ('nful::Dim<1, 0, 1>' and 'nful::Dim<1, 1, 1>')
 	//auto c1 = unit_cast<Unit<float, Base<Dim<1,1,1>, ratio<3,2>, ratio<1,2>, ratio<1,3>>>>(c);
 }
 
@@ -189,11 +188,13 @@ TEST(UnitTest, UnitCastType)
 
 TEST(UnitTest, MemberCast)
 {
-	Millimeter a(7);
+	using namespace si;
+
+	Millimeters a(7);
 	EXPECT_FLOAT_EQ(7, a.asVal());
 	EXPECT_FLOAT_EQ(7, a.as().value());
-	EXPECT_FLOAT_EQ(0.007, a.asVal<Meter>());
-	EXPECT_FLOAT_EQ(0.007, a.as<Meter>().value());
+	EXPECT_FLOAT_EQ(0.007, a.asVal<Meters>());
+	EXPECT_FLOAT_EQ(0.007, a.as<Meters>().value());
 }
 
 /* For binary operators, currently care about three things. Does it return
@@ -530,3 +531,14 @@ TEST(UnitTest, ScalarDivType)
 // 	cout << "a + b + c = " << a + b + Centimeter(127) << endl;
 // 	cout << "a + b + c = " << (a + b + Centimeter(127)).as<Centimeter>() << endl;
 // }
+
+
+TEST(UnitTest, Examples)
+{
+	using namespace si;
+
+	m_s vel(4);
+	cout << "Velociy: " << vel << endl;
+	cout << "Velociy: " << vel.as<in_hr>() << endl;
+
+}

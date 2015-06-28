@@ -2,10 +2,13 @@
 #include <chrono>
 #include <ratio>
 
-// Experimental no frills units library inspired on Barton & Nackman's Dimensional Analysis (Ch 16.5)
-// for dimension handling and std::chrono library / std::ratio for units of measurement.
+// Nful - no-frills units library (C++11/14). [To read: experimental and incomplete]
+// Inspired by Barton & Nackman's Dimensional Analysis [1] and std::chrono library.
 
-// A minimal subset of
+// The library is notionally equivalent to std::chrono::duration, but with an attempt to extend
+// to many dimensions along with the dimensional handling and compile-time checks
+
+// Currently supports a minimal subset of
 
 namespace
 {
@@ -24,7 +27,7 @@ namespace
 }
 
 
-namespace nufl {
+namespace nful {
 
 template <int D1, int D2=0, int D3=0>
 struct Dim {
@@ -254,7 +257,7 @@ MulType<X,Y> operator/(const Unit<X,B>& lhs, const Unit<Y,B>& rhs)
 }
 
 
-// // Scalar * * / Unit
+// Scalar * * / Unit
 
 template <typename X, typename Y, typename B,
           typename = std::enable_if_t<std::is_arithmetic<Y>::value>>
@@ -278,21 +281,19 @@ Unit<MulType<X,Y>,B> operator/(const Unit<X,B>& lhs, const Y& y)
 }
 
 
-
 // Helper types
 
-namespace si {
+template <int n, int d>
+using BaseRatio = Base<Dim<1>, std::ratio<n,d>>;
 
 // Base dimensions
 
-
-template <typename r = std::ratio<1>> using Length = Base<Dim<1>, r>;
-template <typename r = std::ratio<1>> using Length2 = Base<Dim<2>, r>;
-template <typename r = std::ratio<1>> using Time = Base<Dim<0,1>, r>;
-template <typename r = std::ratio<1>> using Time2 = Base<Dim<0,2>, r>;
-template <typename r = std::ratio<1>> using Mass = Base<Dim<0,0,1>, r>;
-
-
+template <typename r> using Length = Base<Dim<1>, r>;
+template <typename r> using Length2 = Base<Dim<2>, r>;
+template <typename r> using Length3 = Base<Dim<2>, r>;
+template <typename r> using Time = Base<Dim<0,1>, r>;
+template <typename r> using Time2 = Base<Dim<0,2>, r>;
+template <typename r> using Mass = Base<Dim<0,0,1>, r>;
 
 // Derived dimensions
 
@@ -301,44 +302,84 @@ template <typename r1, typename r2> using Acceleration = Base<Dim<1,-2>, r1, r2>
 template <typename r1, typename r2, typename r3> using Force = Base<Dim<1,1,-2>, r1, r2, r3>;
 
 
+
+namespace si {
+
 // Useful ratios
 
 using meter = std::ratio<1>;
-using inch = std::ratio<39>;
+using second = std::ratio<1>;
+using kg = std::ratio<1>;
+
+using inch = std::ratio<1,39>;
+using minute = std::ratio<60>;
 using hour = std::ratio<3600>;
 
 
-// Base units
+// Base units (long)
 
-using Meter = Unit<float, Length<meter>>;
-using Meter2 = Unit<float, Length2<meter>>;
-using Centimeter = Unit<float, Length<std::centi>>;
-using Centimeter2 = Unit<float, Length2<std::centi>>;
-using Millimeter = Unit<float, Length<std::milli>>;
+using Meters = Unit<float, Length<meter>>;
+using Meters2 = Unit<float, Length2<meter>>;
+using Meters3 = Unit<float, Length3<meter>>;
+using Centimeters = Unit<float, Length<std::centi>>;
+using Centimeters2 = Unit<float, Length2<std::centi>>;
+using Centimeters3 = Unit<float, Length3<std::centi>>;
+using Millimeters = Unit<float, Length<std::milli>>;
+using Millimeters2 = Unit<float, Length2<std::milli>>;
+using Millimeters3 = Unit<float, Length3<std::milli>>;
 
-using Inch = Unit<float, Length<std::ratio<39>>>;
+using Inches = Unit<float, Length<inch>>;
 
-template <int n, int d>
-using BaseRatio = Base<Dim<1>, std::ratio<n,d>>;
+using Seconds = Unit<float, Time<second>>;
+using Minutes = Unit<float, Time<minute>>;
+using Hours = Unit<float, Time<hour>>;
 
-// Derived units
+using Kilograms = Unit<float, Mass<kg>>;
 
-using m_s = Unit<float, Velocity<meter, meter>>;
+// Base units (short)
+
+using m = Unit<float, Length<meter>>;
+using in = Unit<float, Length<inch>>;
+
+
+// Derived units (long)
+
+using Meters_Second = Unit<float, Velocity<meter, second>>;
+using Meters_Second2 = Unit<float, Acceleration<meter, second>>;
+using Inches_Hour = Unit<float, Velocity<inch, hour>>;
+using KilogramMeters_Second2 = Unit<float, Force<meter, second, kg>>;
+
+// Derived units (short)
+
+using m_s = Unit<float, Velocity<meter, second>>;
+using m_s2 = Unit<float, Acceleration<meter, second>>;
 using in_hr = Unit<float, Velocity<inch, hour>>;
+using kgm_s2 = Unit<float, Force<meter, second, kg>>;
+
+// Constants
+
+// Todo: Unit a literal type
+//constexpr m_s2 g(9.81);
 
 
 } // si
 
-std::ostream& operator<<(std::ostream& os, const si::Meter& q)
+std::ostream& operator<<(std::ostream& os, const si::Meters& q)
 { return os << q.value() << " m"; }
-std::ostream& operator<<(std::ostream& os, const si::Centimeter& q)
+std::ostream& operator<<(std::ostream& os, const si::Centimeters& q)
 { return os << q.value() << " cm"; }
-std::ostream& operator<<(std::ostream& os, const si::Millimeter& q)
+std::ostream& operator<<(std::ostream& os, const si::Millimeters& q)
 { return os << q.value() << " mm"; }
 
-std::ostream& operator<<(std::ostream& os, const si::Meter2& q)
+std::ostream& operator<<(std::ostream& os, const si::Meters2& q)
 { return os << q.value() << " m^2"; }
-std::ostream& operator<<(std::ostream& os, const si::Centimeter2& q)
+std::ostream& operator<<(std::ostream& os, const si::Centimeters2& q)
 { return os << q.value() << " cm^2"; }
 
-} // nufl
+std::ostream& operator<<(std::ostream& os, const si::m_s& q)
+{ return os << q.value() << " m/s"; }
+
+std::ostream& operator<<(std::ostream& os, const si::in_hr& q)
+{ return os << q.value() << " in/hr"; }
+
+} // nful
