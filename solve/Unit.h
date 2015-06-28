@@ -77,11 +77,27 @@ constexpr int64_t ipow(int64_t base, int exp, int64_t result = 1) {
   return exp < 1 ? result : ipow(base*base, exp/2, (exp % 2) ? result*base : result);
 }
 
-template <typename R, int p>
-using inv_ratio_power = std::ratio<ipow(R::den,p), ipow(R::num,p)>;
+constexpr int64_t iabs(int64_t i) {
+	return i >= 0 ? i : -i;
+}
 
-template <typename R, typename Target, int p>
-using ConversionRatio = std::ratio_multiply<R, inv_ratio_power<Target, p>>;
+constexpr int64_t negative_flip(int64_t a, int64_t b, int exp) {
+	return exp >= 0 ? a : b;
+}
+
+constexpr int64_t dividend(int64_t a, int exp) {
+	if (exp == 0) return 1;  // zero-dimensions must contribute unity
+	else          return ipow(a, iabs(exp));
+}
+
+constexpr int64_t divisor(int64_t a, int64_t b, int exp) {
+	if (exp == 0) return 1;
+	else          return ipow(negative_flip(a, b, exp), iabs(exp));
+}
+
+template <typename R1, typename R, int exp>
+using ConversionRatio = std::ratio_multiply<std::ratio<dividend(R1::num, exp), dividend(R1::den, exp)>,
+                                            std::ratio<divisor(R::den, R::num, exp), divisor(R::num, R::den, exp)>>;
 
 template <typename ToUnit, typename X, typename B1, typename D = typename B1::dim>
 ToUnit dimension_cast(const Unit<X,B1>& unit)
