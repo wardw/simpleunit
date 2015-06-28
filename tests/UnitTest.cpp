@@ -6,9 +6,24 @@
 using namespace std;
 using namespace nufl;
 
+
+
+	// template <typename r1>
+	// using Length = Scale<Dimension<1,0,0>, r1>;
+
+	// Unit<float, Scale<Dimension<1,1,1>,ratio<1,1>,ratio<1,1>,ratio<1,1>>>;
+
+	// Unit<int, Velocity<inch, year>>;
+	// Unit<float, Lenth<meter>>;
+
 TEST(UnitTest, Hack)
 {
-	Unit<float, Scale<ratio<1,1>,ratio<4,8>>, Dimension<1,1,1>> a(1);
+	si::Meter width(3);
+
+
+	//NewUnit<float, Velocity<ratio<1>, ratio<1>>>;
+
+	//Unit<float, Scale<Dimension<1,1,1>, ratio<1,1>, ratio<4,8> >> a(1);
 
 	// using fish = Scale<ratio<1,1>, ratio<1,2>, ratio<4,3>>;
 	// Unit<float, fish, Dimension<1,1,1>>(4);
@@ -33,19 +48,11 @@ TEST(UnitTest, Hack)
 	// using myScale = Scale<ratio<1,1000>, ratio<60,1>>;
 	// Unit<int, Velocity,  myScale> fish;
 
-	// Unit<int, Velocity<inch, year>>;
-	// Unit<float, Lenth<meter>>;
 
 	// is::m_s
 }
 
-	// template <typename r1, typename r2>
-	// using Velocity = Scale<Dimension<0,1,-1>, ratio<1>, r1, r2>;
 
-	// template <typename r1>
-	// using Length = Scale<Dimension<1,0,0>, r1>;
-
-	// Unit<float, Scale<Dimension<1,1,1>,ratio<1,1>,ratio<1,1>,ratio<1,1>>>;
 
 	// Unit eggs;
 	// Unit<float> hands;
@@ -137,14 +144,14 @@ TEST(UnitTest, Hack)
 
 TEST(UnitTest, UnitCastSingle)
 {
-	Unit<int, Scale<ratio<4,3>>> a(7);
-	auto a1 = unit_cast<Unit<int, Scale<ratio<3,2>>>>(a);
+	Unit<int, Scale<Dimension<1>, ratio<4,3>>> a(7);
+	auto a1 = unit_cast<Unit<int, Scale<Dimension<1>, ratio<3,2>>>>(a);
 	EXPECT_EQ(6, a1.value());
 	EXPECT_EQ(3, decltype(a1)::scale::r1::num);
 	EXPECT_EQ(2, decltype(a1)::scale::r1::den);
 
-	Unit<float, Scale<ratio<4,3>>> b(7);
-	auto b1 = unit_cast<Unit<int, Scale<ratio<3,2>>>>(b);
+	Unit<float, Scale<Dimension<1>, ratio<4,3>>> b(7);
+	auto b1 = unit_cast<Unit<int, Scale<Dimension<1>, ratio<3,2>>>>(b);
 	EXPECT_EQ(6, b1.value());
 
 	// Unit<int, ratio<4,3>> c(7);
@@ -158,8 +165,8 @@ TEST(UnitTest, UnitCastSingle)
 
 TEST(UnitTest, UnitCastDim)
 {
-	Unit<float, Scale<ratio<4,3>, ratio<4,3>, ratio<4,3>>, Dimension<1,1,1>> a(7);
-	auto a1 = unit_cast<Unit<float, Scale<ratio<3,2>, ratio<1,2>, ratio<1,3>>, Dimension<1,1,1>>>(a);
+	Unit<float, Scale<Dimension<1,1,1>, ratio<4,3>, ratio<4,3>, ratio<4,3>>> a(7);
+	auto a1 = unit_cast<Unit<float, Scale<Dimension<1,1,1>, ratio<3,2>, ratio<1,2>, ratio<1,3>>>>(a);
 	EXPECT_FLOAT_EQ(66.3704, a1.value());
 	EXPECT_EQ(3, decltype(a1)::scale::r1::num);
 	EXPECT_EQ(2, decltype(a1)::scale::r1::den);
@@ -167,24 +174,24 @@ TEST(UnitTest, UnitCastDim)
 	EXPECT_EQ(2, decltype(a1)::scale::r2::den);
 	EXPECT_EQ(1, decltype(a1)::scale::r3::num);
 	EXPECT_EQ(3, decltype(a1)::scale::r3::den);
-	EXPECT_EQ(1, int(decltype(a1)::dim::d1));
-	EXPECT_EQ(1, int(decltype(a1)::dim::d2));
-	EXPECT_EQ(1, int(decltype(a1)::dim::d3));
+	EXPECT_EQ(1, int(decltype(a1)::scale::dim::d1));
+	EXPECT_EQ(1, int(decltype(a1)::scale::dim::d2));
+	EXPECT_EQ(1, int(decltype(a1)::scale::dim::d3));
 
-	Unit<float, Scale<ratio<1,1>, ratio<1,1>>, Dimension<1,1,0>> b(7);
-	auto b1 = unit_cast<Unit<float, Scale<ratio<1,39>, ratio<60,1>>, Dimension<1,1,0>>>(b);
+	Unit<float, Scale<Dimension<1,1>, ratio<1>, ratio<1>>> b(7);
+	auto b1 = unit_cast<Unit<float, Scale<Dimension<1,1,0>, ratio<1,39>, ratio<60,1>>>>(b);
 	EXPECT_FLOAT_EQ(4.55, b1.value());
 	EXPECT_EQ(1,  decltype(b1)::scale::r1::num);
 	EXPECT_EQ(39, decltype(b1)::scale::r1::den);
 	EXPECT_EQ(60,  decltype(b1)::scale::r2::num);
 	EXPECT_EQ(1, decltype(b1)::scale::r2::den);
-	EXPECT_EQ(1, int(decltype(b1)::dim::d1));
-	EXPECT_EQ(1, int(decltype(b1)::dim::d2));
-	EXPECT_EQ(0, int(decltype(b1)::dim::d3));
+	EXPECT_EQ(1, int(decltype(b1)::scale::dim::d1));
+	EXPECT_EQ(1, int(decltype(b1)::scale::dim::d2));
+	EXPECT_EQ(0, int(decltype(b1)::scale::dim::d3));
 
-	Unit<float, Scale<ratio<4,3>, ratio<4,3>>, Dimension<1,1,1>> c(7);
+	Unit<float, Scale<Dimension<1,1,1>, ratio<4,3>, ratio<4,3>>> c(7);
 	cout << c;
-	auto c1 = unit_cast<Unit<float, Scale<ratio<3,2>, ratio<1,2>, ratio<1,3>>, Dimension<1,1,1>>>(c);
+	auto c1 = unit_cast<Unit<float, Scale<Dimension<1,1,1>, ratio<3,2>, ratio<1,2>, ratio<1,3>>>>(c);
 	EXPECT_FLOAT_EQ(49.77777, c1.value());
 }
 

@@ -26,7 +26,7 @@ namespace
 
 namespace nufl {
 
-template <int D1, int D2, int D3>
+template <int D1, int D2=0, int D3=0>
 struct Dimension {
 	static constexpr int d1 = D1;
 	static constexpr int d2 = D2;
@@ -39,14 +39,26 @@ Dimension<m1+m2, l1+l2, t1+t2> operator*(Dimension<m1, l1, t1> lhs,
 	return Dimension<m1+m2, l1+l2, t1+t2>();
 }
 
+template <int a1, int a2, int a3, int b1, int b2, int b3>
+using DimMultiply = Dimension<a1+b1, a2+b2, a3+b3>;
+
 template <int m1, int l1, int t1, int m2, int l2, int t2>
 Dimension<m1-m2, l1-l2, t1-t2> operator/(Dimension<m1, l1, t1> lhs,
 	                                     Dimension<m2, l2, t2> rhs) {
 	return Dimension<m1-m2, l1-l2, t1-t2>();
 }
 
-template <typename R1 = std::ratio<1,1>, typename R2 = std::ratio<1,1>, typename R3 = std::ratio<1,1>>
+template <int D1, int D2, int D3>
+Dimension<D1, D2, D2> operator+(Dimension<D1, D2, D3> lhs,
+	                            Dimension<D1, D2, D3> rhs) {
+	return Dimension<D1, D2, D3>();
+}
+
+// Later: rename Base
+template <typename Dim = Dimension<1>,
+          typename R1 = std::ratio<1>, typename R2 = std::ratio<1>, typename R3 = std::ratio<1>>
 struct Scale {
+	using dim = Dim;
 	using r1 = R1;
 	using r2 = R2;
 	using r3 = R3;
@@ -57,16 +69,16 @@ struct Scale {
 template <typename R1, typename R2>
 using IsMultiple = std::integral_constant<bool, (R1::num*R2::den) % (R2::num*R1::den) == 0>;
 
-template <typename T, typename Ratio, typename Dimension>
+template <typename T, typename S>
 class Unit;
 
-template <typename ToUnit, typename X, typename R1, typename D>
-ToUnit ratio_cast(const Unit<X,R1,D>& unit)
-{
-	using R = typename ToUnit::unit;
-	using Y = typename ToUnit::rep;
-	return ToUnit(static_cast<Y>(unit.value()) * R1::num*R::den / (R1::den*R::num));
-}
+// template <typename ToUnit, typename X, typename R1, typename D>
+// ToUnit ratio_cast(const Unit<X,R1,D>& unit)
+// {
+// 	using R = typename ToUnit::unit;
+// 	using Y = typename ToUnit::rep;
+// 	return ToUnit(static_cast<Y>(unit.value()) * R1::num*R::den / (R1::den*R::num));
+// }
 
 // template <typename ToUnit, typename X, typename R1, typename D>
 // ToUnit conversion_cast(const Unit<X,R1,D>& unit)
@@ -87,28 +99,26 @@ using inv_ratio_power = std::ratio<ipow(R::den,p), ipow(R::num,p)>;
 template <typename R, typename Target, int p>
 using ConversionRatio = std::ratio_multiply<R, inv_ratio_power<Target, p>>;
 
-template <typename ToUnit, typename X, typename S1, typename D,
-		  typename RetUnit = Unit<typename ToUnit::rep, typename ToUnit::scale, D>>
-ToUnit unit_cast(const Unit<X,S1,D>& unit)
+template <typename ToUnit, typename X, typename S1>
+ToUnit unit_cast(const Unit<X,S1>& unit)
 {
-	using S = typename ToUnit::scale;
 	using Y = typename ToUnit::rep;
+	using S = typename ToUnit::scale;
+	using D = AddType<typename S1::dim, typename S::dim>;
 
 	using conversion = std::ratio_multiply<ConversionRatio<typename S1::r1, typename S::r1, D::d1>,
 	                   std::ratio_multiply<ConversionRatio<typename S1::r2, typename S::r2, D::d2>,
 	                                       ConversionRatio<typename S1::r3, typename S::r3, D::d3>>>;
 
-	return Unit<Y,S,D>(static_cast<Y>(unit.value()) * conversion::num / conversion::den);
+	return ToUnit(static_cast<Y>(unit.value()) * conversion::num / conversion::den);
 }
 
-//template <typename T, typename Ratio = std::ratio<1>, typename Dim = Dimension<1,0,0>>
-template <typename T, typename S, typename Dim = Dimension<1,0,0>>
+template <typename T, typename S = Scale<>>
 class Unit
 {
 public:
 	using rep = T;
 	using scale = S;
-	using dim = Dim;
 
 	Unit(const T& val) : value_(val) {}
 
@@ -157,7 +167,7 @@ public:
 		       << ", " << scale::r2::num << "/" << scale::r2::den
 		       << ", " << scale::r3::num << "/" << scale::r3::den
 		       << ")"
-		       << " [" << Dim::d1 << "," << Dim::d2 << "," << Dim::d3 << "]";
+		       << " [" << scale::dim::d1 << "," << scale::dim::d2 << "," << scale::dim::d3 << "]";
 
 		// std::vector<std::string> bases;
 		// bases.push_back(std::to_string(scale::r1::num) + "/" + std::to_string(scale::r1::den));
@@ -186,21 +196,20 @@ private:
 	T value_;
 };
 
-
 template <typename R1, typename R2>
 using CommonRatio = typename std::common_type<std::chrono::duration<int,R1>, std::chrono::duration<int,R2>>::type::period;
 
 template <typename S1, typename S2>
-using CommonScale = Scale<CommonRatio<typename S1::r1 , typename S2::r1>,
-                          CommonRatio<typename S1::r2 , typename S2::r2>,
-                          CommonRatio<typename S1::r3 , typename S2::r3>>;
-
+using CommonScale = Scale<AddType<typename S1::dim, typename S2::dim>,
+                            CommonRatio<typename S1::r1 , typename S2::r1>,
+                            CommonRatio<typename S1::r2 , typename S2::r2>,
+                            CommonRatio<typename S1::r3 , typename S2::r3>>;
 
 // Unit + - * / Unit
 
-template <typename X, typename Y, typename S1, typename S2, typename D,
-          typename ToUnit = Unit<AddType<X,Y>,CommonScale<S1,S2>,D>>
-ToUnit operator+(const Unit<X,S1,D>& lhs, const Unit<Y,S2,D>& rhs)
+template <typename X, typename Y, typename S1, typename S2,
+          typename ToUnit = Unit<AddType<X,Y>,CommonScale<S1,S2>>>
+ToUnit operator+(const Unit<X,S1>& lhs, const Unit<Y,S2>& rhs)
 {
 	using S = typename ToUnit::scale;
 	return ToUnit(unit_cast<Unit<X,S>>(lhs).value() + unit_cast<Unit<Y,S>>(rhs).value());
@@ -265,37 +274,48 @@ ToUnit operator+(const Unit<X,S1,D>& lhs, const Unit<Y,S2,D>& rhs)
 
 // Helper types
 
-namespace SI {
+namespace si {
 
-// Fundamental dimensions
+// Base dimensions
 
-using Mass = nufl::Dimension<1,0,0>;
-using Length = nufl::Dimension<0,1,0>;
-using Time = nufl::Dimension<0,0,1>;
 
-using Length2 = nufl::Dimension<0,2,0>;
+template <typename r = std::ratio<1>> using Length = Scale<Dimension<1>, r>;
+template <typename r = std::ratio<1>> using Length2 = Scale<Dimension<2>, r>;
+template <typename r = std::ratio<1>> using Time = Scale<Dimension<0,1>, r>;
+template <typename r = std::ratio<1>> using Time2 = Scale<Dimension<0,2>, r>;
+template <typename r = std::ratio<1>> using Mass = Scale<Dimension<0,0,1>, r>;
+
 
 
 // Derived dimensions
 
-using Velocity = nufl::Dimension<0,1,-1>;
+template <typename r1, typename r2> using Velocity = Scale<Dimension<1,-1>, r1, r2>;
+template <typename r1, typename r2> using Acceleration = Scale<Dimension<1,-2>, r1, r2>;
+template <typename r1, typename r2, typename r3> using Force = Scale<Dimension<1,1,-2>, r1, r2, r3>;
 
-// Scales
 
-using Centi = Scale<std::centi>;
+// Useful ratios
 
-// Fundamental units
+using unity = std::ratio<1>;
+using inch = std::ratio<39>;
+using hour = std::ratio<3600>;
 
-using Meter = Unit<float, Scale<std::ratio<1,1>>>;
-using Meter2 = Unit<float, Scale<std::ratio<1,1>>, Length2>;
-using Centimeter = Unit<float, std::ratio<1,100>>;
-using Centimeter2 = Unit<float, std::ratio<1,100>, Length2>;
-using Millimeter = Unit<float, std::milli>;
+
+// Base units
+
+using Meter = Unit<float, Length<unity>>;
+using Meter2 = Unit<float, Length2<unity>>;
+using Centimeter = Unit<float, Length<std::centi>>;
+using Centimeter2 = Unit<float, Length2<std::centi>>;
+using Millimeter = Unit<float, Length<std::milli>>;
+
+using Inch = Unit<float, Length<std::ratio<39>>>;
+
 
 // Derived units
 
-// Todo: broken!
-// using MeterPerSecond = Unit<float, Meter, Velocity>;
+using m_s = Unit<float, Velocity<unity, unity>>;
+using in_hr = Unit<float, Velocity<inch, hour>>;
 
 
 } // SI
