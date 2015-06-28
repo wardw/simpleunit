@@ -81,8 +81,10 @@ constexpr int64_t iabs(int64_t i) {
 	return i >= 0 ? i : -i;
 }
 
+// Zero-dimensions must contribute unity.
+// This is indirectly covered by iexp returning 1 for exp < 0, but making this an explicit check
 constexpr int64_t dividend(int64_t a, int exp) {
-	if (exp == 0) return 1;  // zero-dimensions must contribute unity
+	if (exp == 0) return 1;
 	else          return ipow(a, iabs(exp));
 }
 

@@ -78,27 +78,6 @@ TEST(UnitTest, CompoundAssignmentOthers)
 	EXPECT_FLOAT_EQ(1.75f, (e /= 2.f).value());
 }
 
-TEST(UnitTest, UnitCastSingle)
-{
-	Unit<int, BaseRatio<4,3>> a(7);
-	auto a1 = unit_cast<Unit<int, BaseRatio<3,2>>>(a);
-	EXPECT_EQ(6, a1.value());
-	EXPECT_EQ(3, decltype(a1)::base::r1::num);
-	EXPECT_EQ(2, decltype(a1)::base::r1::den);
-
-	Unit<float, BaseRatio<4,3>> b(7);
-	auto b1 = unit_cast<Unit<int, Base<Dim<1>, ratio<3,2>>>>(b);
-	EXPECT_EQ(6, b1.value());
-
-	Unit<int, BaseRatio<4,3>> c(7);
-	auto c1 = unit_cast<Unit<float, BaseRatio<3,2>>>(c);
-	EXPECT_FLOAT_EQ(56.f/9, c1.value());
-
-	Unit<float, BaseRatio<4,3>> d(7);
-	auto d1 = unit_cast<Unit<float, BaseRatio<3,2>>>(d);
-	EXPECT_FLOAT_EQ(56.f/9, d1.value());
-}
-
 TEST(UnitTest, UnitCastCoeff)
 {
 	// Dimensions of 1
@@ -156,6 +135,13 @@ TEST(UnitTest, UnitCastCoeff)
 	EXPECT_EQ(2, decltype(g1)::base::r1::den);
 	EXPECT_EQ(1, decltype(g1)::base::r2::num);
 	EXPECT_EQ(2, decltype(g1)::base::r2::den);
+
+	// Check that any non-unity ratios with zero-dimension do not interfer
+	Unit<float, Base<Dim<1>, ratio<4,3>, ratio<4,3>, ratio<4,3>>> h(7);
+	auto h1 = unit_cast<Unit<float, Base<Dim<1>, ratio<3,2>, ratio<7,8>, ratio<8,9>>>>(h);
+	EXPECT_FLOAT_EQ(56.f/9, h1.value());
+	EXPECT_EQ(3, decltype(h1)::base::r1::num);
+	EXPECT_EQ(2, decltype(h1)::base::r1::den);
 }
 
 TEST(UnitTest, UnitCastDim)
@@ -176,6 +162,29 @@ TEST(UnitTest, UnitCastDim)
 	Unit<float, Base<Dim<1,0,1>, ratio<4,3>, ratio<4,3>, ratio<4,3>>> c(7);
 	// Should not compile: invalid operands to binary expression ('nufl::Dim<1, 0, 1>' and 'nufl::Dim<1, 1, 1>')
 	//auto c1 = unit_cast<Unit<float, Base<Dim<1,1,1>, ratio<3,2>, ratio<1,2>, ratio<1,3>>>>(c);
+}
+
+TEST(UnitTest, UnitCastType)
+{
+	Unit<int, BaseRatio<4,3>> a(7);
+	auto val = unit_cast<Unit<int, BaseRatio<3,2>>>(a).value();
+	EXPECT_EQ(6, val);
+	EXPECT_EQ(1, std::is_integral<decltype(val)>::value);
+
+	Unit<float, BaseRatio<4,3>> b(7);
+	auto val2 = unit_cast<Unit<int, BaseRatio<3,2>>>(b).value();
+	EXPECT_EQ(6, val2);
+	EXPECT_EQ(1, std::is_integral<decltype(val2)>::value);
+
+	Unit<int, BaseRatio<4,3>> c(7);
+	auto val3 = unit_cast<Unit<float, BaseRatio<3,2>>>(c).value();
+	EXPECT_FLOAT_EQ(56.f/9, val3);
+	EXPECT_EQ(1, std::is_floating_point<decltype(val3)>::value);
+
+	Unit<float, BaseRatio<4,3>> d(7);
+	auto val4 = unit_cast<Unit<float, BaseRatio<3,2>>>(d).value();
+	EXPECT_FLOAT_EQ(56.f/9, val4);
+	EXPECT_EQ(1, std::is_floating_point<decltype(val4)>::value);
 }
 
 TEST(UnitTest, MemberCast)
