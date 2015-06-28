@@ -5,7 +5,7 @@
 // Experimental no frills units library inspired on Barton & Nackman's Dimensional Analysis (Ch 16.5)
 // for dimension handling and std::chrono library / std::ratio for units of measurement.
 
-// A very minimal subset of features originally as required for problems in classical mechanics
+// A minimal subset of
 
 namespace
 {
@@ -49,7 +49,7 @@ Dimension<m1-m2, l1-l2, t1-t2> operator/(Dimension<m1, l1, t1> lhs,
 }
 
 template <int D1, int D2, int D3>
-Dimension<D1, D2, D2> operator+(Dimension<D1, D2, D3> lhs,
+Dimension<D1, D2, D3> operator+(Dimension<D1, D2, D3> lhs,
 	                            Dimension<D1, D2, D3> rhs) {
 	return Dimension<D1, D2, D3>();
 }
@@ -64,29 +64,14 @@ struct Scale {
 	using r3 = R3;
 };
 
-// Start of Unit
 
-template <typename R1, typename R2>
-using IsMultiple = std::integral_constant<bool, (R1::num*R2::den) % (R2::num*R1::den) == 0>;
+template <typename S1, typename S2>
+using IsMultiple = std::integral_constant<bool, (S1::r1::num * S2::r1::den) % (S2::r1::num * S1::r1::den) == 0 &&
+                                                (S1::r2::num * S2::r2::den) % (S2::r2::num * S1::r2::den) == 0 &&
+                                                (S1::r3::num * S2::r3::den) % (S2::r3::num * S1::r3::den) == 0 >;
 
 template <typename T, typename S>
 class Unit;
-
-// template <typename ToUnit, typename X, typename R1, typename D>
-// ToUnit ratio_cast(const Unit<X,R1,D>& unit)
-// {
-// 	using R = typename ToUnit::unit;
-// 	using Y = typename ToUnit::rep;
-// 	return ToUnit(static_cast<Y>(unit.value()) * R1::num*R::den / (R1::den*R::num));
-// }
-
-// template <typename ToUnit, typename X, typename R1, typename D>
-// ToUnit conversion_cast(const Unit<X,R1,D>& unit)
-// {
-// 	using R = typename ToUnit::unit;
-// 	using Y = typename ToUnit::rep;
-// 	return ToUnit(static_cast<Y>(unit.value()) * R1::num*R::den / (R1::den*R::num));
-// }
 
 constexpr int64_t ipow(int64_t base, int exp, int64_t result = 1) {
   return exp < 1 ? result : ipow(base*base, exp/2, (exp % 2) ? result*base : result);
@@ -94,23 +79,29 @@ constexpr int64_t ipow(int64_t base, int exp, int64_t result = 1) {
 
 template <typename R, int p>
 using inv_ratio_power = std::ratio<ipow(R::den,p), ipow(R::num,p)>;
-//using inv_ratio_power = std::ratio<R::den, R::num>;
 
 template <typename R, typename Target, int p>
 using ConversionRatio = std::ratio_multiply<R, inv_ratio_power<Target, p>>;
 
-template <typename ToUnit, typename X, typename S1>
-ToUnit unit_cast(const Unit<X,S1>& unit)
+template <typename ToUnit, typename X, typename S1, typename D = typename S1::dim>
+ToUnit dimension_cast(const Unit<X,S1>& unit)
 {
 	using Y = typename ToUnit::rep;
 	using S = typename ToUnit::scale;
-	using D = AddType<typename S1::dim, typename S::dim>;
 
 	using conversion = std::ratio_multiply<ConversionRatio<typename S1::r1, typename S::r1, D::d1>,
 	                   std::ratio_multiply<ConversionRatio<typename S1::r2, typename S::r2, D::d2>,
 	                                       ConversionRatio<typename S1::r3, typename S::r3, D::d3>>>;
 
 	return ToUnit(static_cast<Y>(unit.value()) * conversion::num / conversion::den);
+}
+
+template <typename ToUnit, typename X, typename S1>
+ToUnit unit_cast(const Unit<X,S1>& unit)
+{
+	// todo: static_assert()
+	using S = typename ToUnit::scale;
+	return dimension_cast<ToUnit,X,S1,AddType<typename S1::dim,typename S::dim>>(unit);
 }
 
 template <typename T, typename S = Scale<>>
@@ -122,36 +113,36 @@ public:
 
 	Unit(const T& val) : value_(val) {}
 
-	// // Notice no case covers integral T but floating-point X
-	// template < typename X, typename R1,
-	// 	typename std::enable_if_t<
-	// 	    std::is_integral<T>::value &&
-	// 	    std::is_integral<X>::value &&
-	// 		IsMultiple<R1,Ratio>::value, int > = 0 >
-	// Unit(const Unit<X,R1>& rhs) {
-	// 	// New value is target unit / this ratio, which enable_if guarantees to divide evenly
-	// 	value_ = rhs.value() * R1::num * Ratio::den / (R1::den * Ratio::num);
-	// }
+	// Notice no case covers integral T but floating-point X
+	template < typename X, typename S1,
+		typename std::enable_if_t<
+		    std::is_integral<T>::value &&
+		    std::is_integral<X>::value &&
+			IsMultiple<S1,S>::value, int > = 0 >
+	Unit(const Unit<X,S1>& rhs) {
+		// New value is target unit / this ratio, which enable_if guarantees to divide evenly
+		value_ = rhs.value() * S1::r1::num * S::r1::den / (S1::r1::den * S::r1::num);
+	}
 
-	// // The seemingly redundant `std::is_floating_point<X>::value` seems required to
-	// // make this overload conditionally dependent on X (otherwise a fail instantiating Unit<T>)
-	// template < typename X, typename R1,
-	// 	typename std::enable_if_t<
-	// 	    (std::is_floating_point<T>::value && std::is_floating_point<X>::value) ||
-	// 	    (std::is_floating_point<T>::value && !std::is_floating_point<X>::value), int> = 0 >
-	// Unit(const Unit<X,R1>& rhs) {
-	// 	// New value is target unit / this ratio, which enable_if guarantees to divide evenly
-	// 	value_ = rhs.value() * static_cast<T>(R1::num * Ratio::den) / static_cast<T>(R1::den * Ratio::num);
-	// }
+	// The seemingly redundant `std::is_floating_point<X>::value` seems required to
+	// make this overload conditionally dependent on X (and avoid error while instantiating Unit<T>)
+	template < typename X, typename S1,
+		typename std::enable_if_t<
+		    (std::is_floating_point<T>::value && std::is_floating_point<X>::value) ||
+		    (std::is_floating_point<T>::value && !std::is_floating_point<X>::value), int> = 0 >
+	Unit(const Unit<X,S1>& rhs) {
+		// New value is target unit / this ratio, which enable_if guarantees to divide evenly
+		value_ = rhs.value() * static_cast<T>(S1::r1::num * S::r1::den) / static_cast<T>(S1::r1::den * S::r1::num);
+	}
 
 	T& value() { return value_; }
 	const T& value() const { return value_; }
 
-	//template <typename Q = Unit<T,Ratio>>
-	//Q as() const { return unit_cast<Q>(*this); }
+	template <typename Q = Unit<T,S>>
+	Q as() const { return unit_cast<Q>(*this); }
 
-	// template <typename Q = Unit<T,Ratio>>
-	// T asVal() const { return unit_cast<Q>(*this).value(); }
+	template <typename Q = Unit<T,S>>
+	T asVal() const { return unit_cast<Q>(*this).value(); }
 
 	Unit& operator+=(const Unit& rhs) { value_ += rhs.value(); return *this; }
 	Unit& operator-=(const Unit& rhs) { value_ -= rhs.value(); return *this; }
@@ -199,76 +190,75 @@ private:
 template <typename R1, typename R2>
 using CommonRatio = typename std::common_type<std::chrono::duration<int,R1>, std::chrono::duration<int,R2>>::type::period;
 
-template <typename S1, typename S2>
-using CommonScale = Scale<AddType<typename S1::dim, typename S2::dim>,
-                            CommonRatio<typename S1::r1 , typename S2::r1>,
-                            CommonRatio<typename S1::r2 , typename S2::r2>,
-                            CommonRatio<typename S1::r3 , typename S2::r3>>;
+template <typename D, typename S1, typename S2>
+using CommonScale = Scale<D, CommonRatio<typename S1::r1 , typename S2::r1>,
+                             CommonRatio<typename S1::r2 , typename S2::r2>,
+                             CommonRatio<typename S1::r3 , typename S2::r3>>;
 
 // Unit + - * / Unit
 
 template <typename X, typename Y, typename S1, typename S2,
-          typename ToUnit = Unit<AddType<X,Y>,CommonScale<S1,S2>>>
+          typename ToUnit = Unit< AddType<X,Y>, CommonScale<AddType<typename S1::dim,typename S2::dim>,S1,S2>> >
 ToUnit operator+(const Unit<X,S1>& lhs, const Unit<Y,S2>& rhs)
 {
 	using S = typename ToUnit::scale;
 	return ToUnit(unit_cast<Unit<X,S>>(lhs).value() + unit_cast<Unit<Y,S>>(rhs).value());
 }
 
-// template <typename X, typename Y, typename R1, typename R2, typename D,
-//           typename ToUnit = CommonUnit<CommonDuration<X,Y,R1,R2>,D>>
-// ToUnit operator-(const Unit<X,R1,D>& lhs, const Unit<Y,R2,D>& rhs)
-// {
-// 	using R = typename ToUnit::unit;
-// 	return ToUnit(unit_cast<Unit<X,R>>(lhs).value() - unit_cast<Unit<Y,R>>(rhs).value());
-// }
+template <typename X, typename Y, typename S1, typename S2,
+          typename ToUnit = Unit< AddType<X,Y>, CommonScale<AddType<typename S1::dim,typename S2::dim>,S1,S2>> >
+ToUnit operator-(const Unit<X,S1>& lhs, const Unit<Y,S2>& rhs)
+{
+	using S = typename ToUnit::scale;
+	return ToUnit(unit_cast<Unit<X,S>>(lhs).value() - unit_cast<Unit<Y,S>>(rhs).value());
+}
 
-// template <typename X, typename Y, typename R1, typename R2, typename D1, typename D2,
-//           typename ToUnit = CommonUnit<CommonDuration<X,Y,R1,R2>,MulType<D1,D2>>>
-// ToUnit operator*(const Unit<X,R1,D1>& lhs, const Unit<Y,R2,D2>& rhs)
-// {
-// 	using R = typename ToUnit::unit;
-// 	return ToUnit(unit_cast<Unit<X,R>>(lhs).value() * unit_cast<Unit<Y,R>>(rhs).value());
-// }
+template <typename X, typename Y, typename S1, typename S2,
+          typename ToUnit = Unit< AddType<X,Y>, CommonScale<MulType<typename S1::dim,typename S2::dim>,S1,S2>> >
+ToUnit operator*(const Unit<X,S1>& lhs, const Unit<Y,S2>& rhs)
+{
+	using S = typename ToUnit::scale;
+	return ToUnit(dimension_cast<Unit<X,S>>(lhs).value() * dimension_cast<Unit<Y,S>>(rhs).value());
+}
 
-// template <typename X, typename Y, typename R1, typename R2, typename D1, typename D2,
-//           typename ToUnit = CommonUnit<CommonDuration<X,Y,R1,R2>,DivType<D1,D2>>>
-// ToUnit operator/(const Unit<X,R1,D1>& lhs, const Unit<Y,R2,D2>& rhs)
-// {
-// 	using R = typename ToUnit::unit;
-// 	return ToUnit(unit_cast<Unit<X,R>>(lhs).value() / unit_cast<Unit<Y,R>>(rhs).value());
-// }
+template <typename X, typename Y, typename S1, typename S2,
+          typename ToUnit = Unit< AddType<X,Y>, CommonScale<DivType<typename S1::dim,typename S2::dim>,S1,S2>> >
+ToUnit operator/(const Unit<X,S1>& lhs, const Unit<Y,S2>& rhs)
+{
+	using S = typename ToUnit::scale;
+	return ToUnit(dimension_cast<Unit<X,S>>(lhs).value() / dimension_cast<Unit<Y,S>>(rhs).value());
+}
 
-// // todo
-// template <typename X, typename Y, typename R, typename D>
-// MulType<X,Y> operator/(const Unit<X,R,D>& lhs, const Unit<Y,R,D>& rhs)
-// {
-// 	return MulType<X,Y>(lhs.value() / rhs.value());
-// }
+// Todo: see `TEST(UnitTest, DivType)`
+template <typename X, typename Y, typename S>
+MulType<X,Y> operator/(const Unit<X,S>& lhs, const Unit<Y,S>& rhs)
+{
+	return MulType<X,Y>(lhs.value() / rhs.value());
+}
 
 
 // // Scalar * * / Unit
 
-// template <typename X, typename Y, typename R, typename D,
-//           typename = std::enable_if_t<std::is_arithmetic<Y>::value>>
-// Unit<MulType<X,Y>,R,D> operator*(const Unit<X,R,D>& lhs, const Y& y)
-// {
-// 	return Unit<MulType<X,Y>,R,D>(lhs.value() * y);
-// }
+template <typename X, typename Y, typename S,
+          typename = std::enable_if_t<std::is_arithmetic<Y>::value>>
+Unit<MulType<X,Y>,S> operator*(const Unit<X,S>& lhs, const Y& y)
+{
+	return Unit<MulType<X,Y>,S>(lhs.value() * y);
+}
 
-// template <typename X, typename Y, typename R, typename D,
-//           typename = std::enable_if_t<std::is_arithmetic<Y>::value>>
-// Unit<MulType<X,Y>,R,D> operator*(const Y& y, const Unit<X,R,D>& rhs)
-// {
-// 	return Unit<MulType<X,Y>,R,D>(rhs.value() * y);
-// }
+template <typename X, typename Y, typename S,
+          typename = std::enable_if_t<std::is_arithmetic<Y>::value>>
+Unit<MulType<X,Y>,S> operator*(const Y& y, const Unit<X,S>& rhs)
+{
+	return Unit<MulType<X,Y>,S>(rhs.value() * y);
+}
 
-// template <typename X, typename Y, typename R, typename D,
-//           typename = std::enable_if_t<std::is_arithmetic<Y>::value>>
-// Unit<MulType<X,Y>,R,D> operator/(const Unit<X,R,D>& lhs, const Y& y)
-// {
-// 	return Unit<MulType<X,Y>,R,D>(lhs.value() / y);
-// }
+template <typename X, typename Y, typename S,
+          typename = std::enable_if_t<std::is_arithmetic<Y>::value>>
+Unit<MulType<X,Y>,S> operator/(const Unit<X,S>& lhs, const Y& y)
+{
+	return Unit<MulType<X,Y>,S>(lhs.value() / y);
+}
 
 
 
@@ -296,40 +286,42 @@ template <typename r1, typename r2, typename r3> using Force = Scale<Dimension<1
 
 // Useful ratios
 
-using unity = std::ratio<1>;
+using meter = std::ratio<1>;
 using inch = std::ratio<39>;
 using hour = std::ratio<3600>;
 
 
 // Base units
 
-using Meter = Unit<float, Length<unity>>;
-using Meter2 = Unit<float, Length2<unity>>;
+using Meter = Unit<float, Length<meter>>;
+using Meter2 = Unit<float, Length2<meter>>;
 using Centimeter = Unit<float, Length<std::centi>>;
 using Centimeter2 = Unit<float, Length2<std::centi>>;
 using Millimeter = Unit<float, Length<std::milli>>;
 
 using Inch = Unit<float, Length<std::ratio<39>>>;
 
+template <int n, int d>
+using BaseRatio = Scale<Dimension<1>, std::ratio<n,d>>;
 
 // Derived units
 
-using m_s = Unit<float, Velocity<unity, unity>>;
+using m_s = Unit<float, Velocity<meter, meter>>;
 using in_hr = Unit<float, Velocity<inch, hour>>;
 
 
-} // SI
+} // si
 
-// std::ostream& operator<<(std::ostream& os, const SI::Meter& q)
-// { return os << q.value() << " m"; }
-// std::ostream& operator<<(std::ostream& os, const SI::Centimeter& q)
-// { return os << q.value() << " cm"; }
-// std::ostream& operator<<(std::ostream& os, const SI::Millimeter& q)
-// { return os << q.value() << " mm"; }
+std::ostream& operator<<(std::ostream& os, const si::Meter& q)
+{ return os << q.value() << " m"; }
+std::ostream& operator<<(std::ostream& os, const si::Centimeter& q)
+{ return os << q.value() << " cm"; }
+std::ostream& operator<<(std::ostream& os, const si::Millimeter& q)
+{ return os << q.value() << " mm"; }
 
-// std::ostream& operator<<(std::ostream& os, const SI::Meter2& q)
-// { return os << q.value() << " m^2"; }
-// std::ostream& operator<<(std::ostream& os, const SI::Centimeter2& q)
-// { return os << q.value() << " cm^2"; }
+std::ostream& operator<<(std::ostream& os, const si::Meter2& q)
+{ return os << q.value() << " m^2"; }
+std::ostream& operator<<(std::ostream& os, const si::Centimeter2& q)
+{ return os << q.value() << " cm^2"; }
 
 } // nufl
