@@ -81,10 +81,6 @@ constexpr int64_t iabs(int64_t i) {
 	return i >= 0 ? i : -i;
 }
 
-constexpr int64_t negative_flip(int64_t a, int64_t b, int exp) {
-	return exp >= 0 ? a : b;
-}
-
 constexpr int64_t dividend(int64_t a, int exp) {
 	if (exp == 0) return 1;  // zero-dimensions must contribute unity
 	else          return ipow(a, iabs(exp));
@@ -92,7 +88,7 @@ constexpr int64_t dividend(int64_t a, int exp) {
 
 constexpr int64_t divisor(int64_t a, int64_t b, int exp) {
 	if (exp == 0) return 1;
-	else          return ipow(negative_flip(a, b, exp), iabs(exp));
+	else          return ipow(exp > 0 ? a : b, iabs(exp));
 }
 
 template <typename R1, typename R, int exp>
