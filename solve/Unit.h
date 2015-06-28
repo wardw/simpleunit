@@ -100,6 +100,9 @@ template <typename ToUnit, typename X, typename B1>
 ToUnit unit_cast(const Unit<X,B1>& unit)
 {
 	// todo: static_assert()
+	// A unit cast only casts between units of equal dimensions.
+	// To avoid this check, use dimension_cast.
+
 	using B = typename ToUnit::base;
 	return dimension_cast<ToUnit,X,B1,AddType<typename B1::dim,typename B::dim>>(unit);
 }
@@ -113,26 +116,26 @@ public:
 
 	Unit(const T& val) : value_(val) {}
 
-	// Notice no case covers integral T but floating-point X
+	// The purpose of the following two construtors are to exclude the case for integral T but floating-point X
+	// and ensure no loss of information in the intergral to integral constructor
+	// This convention is adpoted from std::chrono::duration
 	template < typename X, typename B1,
 		typename std::enable_if_t<
 		    std::is_integral<T>::value &&
 		    std::is_integral<X>::value &&
 			IsMultiple<B1,B>::value, int > = 0 >
 	Unit(const Unit<X,B1>& rhs) {
-		// New value is target unit / this ratio, which enable_if guarantees to divide evenly
-		value_ = rhs.value() * B1::r1::num * B::r1::den / (B1::r1::den * B::r1::num);
+		value_ = unit_cast<Unit<T,B>>(rhs).value();
 	}
 
-	// The seemingly redundant `std::is_floating_point<X>::value` seems required to
-	// make this overload conditionally dependent on X (and avoid error while instantiating Unit<T>)
+	// The seemingly redundant test on `is_floating_point<X>` is required to make this
+	// overload conditionally dependent on X (although there's probably a better way)
 	template < typename X, typename B1,
 		typename std::enable_if_t<
 		    (std::is_floating_point<T>::value && std::is_floating_point<X>::value) ||
 		    (std::is_floating_point<T>::value && !std::is_floating_point<X>::value), int> = 0 >
 	Unit(const Unit<X,B1>& rhs) {
-		// New value is target unit / this ratio, which enable_if guarantees to divide evenly
-		value_ = rhs.value() * static_cast<T>(B1::r1::num * B::r1::den) / static_cast<T>(B1::r1::den * B::r1::num);
+		value_ = unit_cast<Unit<T,B>>(rhs).value();
 	}
 
 	T& value() { return value_; }
