@@ -36,25 +36,25 @@ struct Dim {
 	static constexpr int d3 = D3;
 };
 
-template <int m1, int l1, int t1, int m2, int l2, int t2>
-Dim<m1+m2, l1+l2, t1+t2> operator*(Dim<m1, l1, t1> lhs,
-	                                     Dim<m2, l2, t2> rhs) {
-	return Dim<m1+m2, l1+l2, t1+t2>();
+template <int A1, int A2, int A3, int B1, int B2, int B3>
+Dim<A1+B1, A2+B2, A3+B3> operator*(Dim<A1, A2, A3> lhs,
+	                                     Dim<B1, B2, B3> rhs) {
+	return Dim<A1+B1, A2+B2, A3+B3>();
 }
 
-template <int a1, int a2, int a3, int b1, int b2, int b3>
-using DimMultiply = Dim<a1+b1, a2+b2, a3+b3>;
+template <int A1, int A2, int A3, int B1, int B2, int B3>
+using DimMultiply = Dim<A1+B1, A2+B2, A3+B3>;
 
-template <int m1, int l1, int t1, int m2, int l2, int t2>
-Dim<m1-m2, l1-l2, t1-t2> operator/(Dim<m1, l1, t1> lhs,
-	                                     Dim<m2, l2, t2> rhs) {
-	return Dim<m1-m2, l1-l2, t1-t2>();
+template <int A1, int l1, int A3, int B1, int B2, int B3>
+Dim<A1-B1, l1-B2, A3-B3> operator/(Dim<A1, l1, A3> lhs,
+	                                     Dim<B1, B2, B3> rhs) {
+	return Dim<A1-B1, l1-B2, A3-B3>();
 }
 
-template <int D1, int D2, int D3>
-Dim<D1, D2, D3> operator+(Dim<D1, D2, D3> lhs,
-	                            Dim<D1, D2, D3> rhs) {
-	return Dim<D1, D2, D3>();
+template <int A1, int A2, int A3>
+Dim<A1, A2, A3> operator+(Dim<A1, A2, A3> lhs,
+	                            Dim<A1, A2, A3> rhs) {
+	return Dim<A1, A2, A3>();
 }
 
 // Later: rename Base
