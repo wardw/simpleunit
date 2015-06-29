@@ -120,7 +120,7 @@ TEST(UnitTest, UnitCastCoeff)
 	// Dimensions of -1
 	Unit<float, Base<Dim<1,-1>, ratio<4,3>, ratio<4,3>>> f(7);
 	auto f1 = unit_cast<Unit<float, Base<Dim<1,-1>, ratio<3,2>, ratio<1,2>>>>(f);
-	EXPECT_FLOAT_EQ(4.148146, f1.value());
+	EXPECT_FLOAT_EQ(7.f/3, f1.value());
 	EXPECT_EQ(3, decltype(f1)::base::r1::num);
 	EXPECT_EQ(2, decltype(f1)::base::r1::den);
 	EXPECT_EQ(1, decltype(f1)::base::r2::num);
@@ -129,7 +129,7 @@ TEST(UnitTest, UnitCastCoeff)
 	// Dimensions of < -1
 	Unit<float, Base<Dim<2,-3>, ratio<4,3>, ratio<4,3>>> g(7);
 	auto g1 = unit_cast<Unit<float, Base<Dim<2,-3>, ratio<3,2>, ratio<1,2>>>>(g);
-	EXPECT_FLOAT_EQ(1.6387746, g1.value());
+	EXPECT_FLOAT_EQ(0.29166666, g1.value());
 	EXPECT_EQ(3, decltype(g1)::base::r1::num);
 	EXPECT_EQ(2, decltype(g1)::base::r1::den);
 	EXPECT_EQ(1, decltype(g1)::base::r2::num);

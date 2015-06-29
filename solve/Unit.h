@@ -91,14 +91,16 @@ constexpr int64_t dividend(int64_t a, int exp) {
 	else          return ipow(a, iabs(exp));
 }
 
-constexpr int64_t divisor(int64_t a, int64_t b, int exp) {
+// take positive powers of inverse quotients (rather than negative powers)
+constexpr int64_t power_flip(int64_t a, int64_t b, int exp) {
 	if (exp == 0) return 1;
 	else          return ipow(exp > 0 ? a : b, iabs(exp));
 }
 
+// multiply inverse of the divisor (rather than divide)
 template <typename R1, typename R, int exp>
-using ConversionRatio = std::ratio_multiply<std::ratio<dividend(R1::num, exp), dividend(R1::den, exp)>,
-                                            std::ratio<divisor(R::den, R::num, exp), divisor(R::num, R::den, exp)>>;
+using ConversionRatio = std::ratio_multiply<std::ratio<power_flip(R1::num, R1::den, exp), power_flip(R1::den, R1::num, exp)>,
+                                            std::ratio<power_flip(R::den, R::num, exp), power_flip(R::num, R::den, exp)>>;
 
 template <typename ToUnit, typename X, typename B1, typename D = typename B1::dim>
 ToUnit dimension_cast(const Unit<X,B1>& unit)
