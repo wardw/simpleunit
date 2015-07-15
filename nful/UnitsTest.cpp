@@ -1,11 +1,11 @@
 #include <iostream>
 #include <ratio>
 #include "gtest/gtest.h"
-#include "hummingbird/solve/Unit.h"
+
+#include "nful/Units.h"
 
 using namespace std;
 using namespace nful;
-//using namespace nful::si;
 
 TEST(UnitTest, ImplicitConversion)
 {
