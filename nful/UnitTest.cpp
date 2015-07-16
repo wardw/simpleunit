@@ -2,7 +2,7 @@
 #include <ratio>
 #include "gtest/gtest.h"
 
-#include "nful/Units.h"
+#include "nful/Unit.h"
 
 using namespace std;
 using namespace nful;

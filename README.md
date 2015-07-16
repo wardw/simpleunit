@@ -1,15 +1,15 @@
 
-### Nful - No frills C++ units library
+### Nful - No frills units library
 
 A C++ units library building on Barton & Nackman's Dimensional Analysis [1] and the STL [`std::chrono`][a] library. The library combines similar semantics to `std::chrono::duration` for representing quantities of time with an extension to multiple dimensions.  Scale and dimensionality are included within the type, and so the library allows for both static compile time checking of arithmetic operations between consistent dimensions and for numeric conversions between equivalent units of varying scales.
 
 Under the type abstraction, the `Unit` class has a single value type `T` representing the unit's value, and so should handle equivalently to using `T` directly. (todo: comparison check)
 
-The library is header only, with a single header `nful.h`.  There is a CMakeLists.txt to build the tests with CMake (that depends on Google Test).
+The library is header only, with a single header `nful/Unit.h`.  There is a CMakeLists.txt to build the tests with CMake (that depends on Google Test).
 
 ### Example usage
 
-	#include "nufl/nful.h"
+	#include "nful/Unit.h"
 	using namespace nful::si;
 
 	Meters height(5);

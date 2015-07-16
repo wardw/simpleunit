@@ -15,7 +15,7 @@ endif()
 
 
 # Single source file
-set(gtest_src "nful/UnitsTest.cpp")
+set(gtest_src "nful/UnitTest.cpp")
 
 # Build options
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
