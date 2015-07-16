@@ -533,12 +533,21 @@ TEST(UnitTest, ScalarDivType)
 // }
 
 
-TEST(UnitTest, Examples)
+TEST(UnitTest, ReadmeExample)
 {
-	using namespace si;
+	using namespace nful::si;
 
-	m_s vel(4);
-	cout << "Velociy: " << vel << endl;
-	cout << "Velociy: " << vel.as<in_hr>() << endl;
+	Meters height(5);
+	Centimeters width(200);
 
+	cout << "flowrate = " << width * height / Seconds(132) << endl;
+
+	auto flowrate = width * height / Seconds(132);
+	cout << "flowrate = " << flowrate.as<Inches2_Second>() << endl;
+
+    auto f2 = nful::unit_cast<Inches2_Second>(flowrate);
+	cout << "f2 = " << f2 << endl;
+
+	//auto foo = height + Seconds(2);  // Compile error: invalid operands 'Meters' and 'Seconds'
+	auto foo = height / Seconds(2);  // Ok: returns unit of Meters_Second
 }
