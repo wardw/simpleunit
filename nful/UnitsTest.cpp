@@ -80,8 +80,8 @@ TEST(UnitTest, CompoundAssignmentOthers)
 TEST(UnitTest, UnitCastCoeff)
 {
 	// Dimensions of 1
-	Unit<float, Base<Dim<1,1,1>, ratio<4,3>, ratio<4,3>, ratio<4,3>>> a(7);
-	auto a1 = unit_cast<Unit<float, Base<Dim<1,1,1>, ratio<3,2>, ratio<1,2>, ratio<1,3>>>>(a);
+	Unit<float, BaseUnit<Dim<1,1,1>, ratio<4,3>, ratio<4,3>, ratio<4,3>>> a(7);
+	auto a1 = unit_cast<Unit<float, BaseUnit<Dim<1,1,1>, ratio<3,2>, ratio<1,2>, ratio<1,3>>>>(a);
 	EXPECT_FLOAT_EQ(66.3704, a1.value());
 	EXPECT_EQ(3, decltype(a1)::base::r1::num);
 	EXPECT_EQ(2, decltype(a1)::base::r1::den);
@@ -90,25 +90,25 @@ TEST(UnitTest, UnitCastCoeff)
 	EXPECT_EQ(1, decltype(a1)::base::r3::num);
 	EXPECT_EQ(3, decltype(a1)::base::r3::den);
 
-	Unit<float, Base<Dim<1,1>, ratio<1>, ratio<1>>> b(7);
-	auto b1 = unit_cast<Unit<float, Base<Dim<1,1>, ratio<1,39>, ratio<60,1>>>>(b);
+	Unit<float, BaseUnit<Dim<1,1>, ratio<1>, ratio<1>>> b(7);
+	auto b1 = unit_cast<Unit<float, BaseUnit<Dim<1,1>, ratio<1,39>, ratio<60,1>>>>(b);
 	EXPECT_FLOAT_EQ(4.55, b1.value());
 	EXPECT_EQ( 1, decltype(b1)::base::r1::num);
 	EXPECT_EQ(39, decltype(b1)::base::r1::den);
 	EXPECT_EQ(60, decltype(b1)::base::r2::num);
 	EXPECT_EQ( 1, decltype(b1)::base::r2::den);
 
-	Unit<float, Base<Dim<1,1,1>, ratio<4,3>, ratio<4,3>>> c(7);
-	auto c1 = unit_cast<Unit<float, Base<Dim<1,1,1>, ratio<3,2>, ratio<1,2>, ratio<1,3>>>>(c);
+	Unit<float, BaseUnit<Dim<1,1,1>, ratio<4,3>, ratio<4,3>>> c(7);
+	auto c1 = unit_cast<Unit<float, BaseUnit<Dim<1,1,1>, ratio<3,2>, ratio<1,2>, ratio<1,3>>>>(c);
 	EXPECT_FLOAT_EQ(49.77777, c1.value());
 
 	// Dimensions of > 1
-	Unit<float, Base<Dim<2>, ratio<1,100>>> d(10);
-	auto d1 = unit_cast<Unit<float, Base<Dim<2>, ratio<1,39>>>>(d);
+	Unit<float, BaseUnit<Dim<2>, ratio<1,100>>> d(10);
+	auto d1 = unit_cast<Unit<float, BaseUnit<Dim<2>, ratio<1,39>>>>(d);
 	EXPECT_FLOAT_EQ(1.521, d1.value());
 
-	Unit<float, Base<Dim<2,1,3>, ratio<4,3>, ratio<4,3>, ratio<4,3>>> e(7);
-	auto e1 = unit_cast<Unit<float, Base<Dim<2,1,3>, ratio<3,2>, ratio<1,2>, ratio<1,3>>>>(e);
+	Unit<float, BaseUnit<Dim<2,1,3>, ratio<4,3>, ratio<4,3>, ratio<4,3>>> e(7);
+	auto e1 = unit_cast<Unit<float, BaseUnit<Dim<2,1,3>, ratio<3,2>, ratio<1,2>, ratio<1,3>>>>(e);
 	EXPECT_FLOAT_EQ(943.93414, e1.value());
 	EXPECT_EQ(3, decltype(e1)::base::r1::num);
 	EXPECT_EQ(2, decltype(e1)::base::r1::den);
@@ -118,8 +118,8 @@ TEST(UnitTest, UnitCastCoeff)
 	EXPECT_EQ(3, decltype(e1)::base::r3::den);
 
 	// Dimensions of -1
-	Unit<float, Base<Dim<1,-1>, ratio<4,3>, ratio<4,3>>> f(7);
-	auto f1 = unit_cast<Unit<float, Base<Dim<1,-1>, ratio<3,2>, ratio<1,2>>>>(f);
+	Unit<float, BaseUnit<Dim<1,-1>, ratio<4,3>, ratio<4,3>>> f(7);
+	auto f1 = unit_cast<Unit<float, BaseUnit<Dim<1,-1>, ratio<3,2>, ratio<1,2>>>>(f);
 	EXPECT_FLOAT_EQ(7.f/3, f1.value());
 	EXPECT_EQ(3, decltype(f1)::base::r1::num);
 	EXPECT_EQ(2, decltype(f1)::base::r1::den);
@@ -127,8 +127,8 @@ TEST(UnitTest, UnitCastCoeff)
 	EXPECT_EQ(2, decltype(f1)::base::r2::den);
 
 	// Dimensions of < -1
-	Unit<float, Base<Dim<2,-3>, ratio<4,3>, ratio<4,3>>> g(7);
-	auto g1 = unit_cast<Unit<float, Base<Dim<2,-3>, ratio<3,2>, ratio<1,2>>>>(g);
+	Unit<float, BaseUnit<Dim<2,-3>, ratio<4,3>, ratio<4,3>>> g(7);
+	auto g1 = unit_cast<Unit<float, BaseUnit<Dim<2,-3>, ratio<3,2>, ratio<1,2>>>>(g);
 	EXPECT_FLOAT_EQ(0.29166666, g1.value());
 	EXPECT_EQ(3, decltype(g1)::base::r1::num);
 	EXPECT_EQ(2, decltype(g1)::base::r1::den);
@@ -136,8 +136,8 @@ TEST(UnitTest, UnitCastCoeff)
 	EXPECT_EQ(2, decltype(g1)::base::r2::den);
 
 	// Check that any non-unity ratios with zero-dimension do not interfer
-	Unit<float, Base<Dim<1>, ratio<4,3>, ratio<4,3>, ratio<4,3>>> h(7);
-	auto h1 = unit_cast<Unit<float, Base<Dim<1>, ratio<3,2>, ratio<7,8>, ratio<8,9>>>>(h);
+	Unit<float, BaseUnit<Dim<1>, ratio<4,3>, ratio<4,3>, ratio<4,3>>> h(7);
+	auto h1 = unit_cast<Unit<float, BaseUnit<Dim<1>, ratio<3,2>, ratio<7,8>, ratio<8,9>>>>(h);
 	EXPECT_FLOAT_EQ(56.f/9, h1.value());
 	EXPECT_EQ(3, decltype(h1)::base::r1::num);
 	EXPECT_EQ(2, decltype(h1)::base::r1::den);
@@ -145,22 +145,22 @@ TEST(UnitTest, UnitCastCoeff)
 
 TEST(UnitTest, UnitCastDim)
 {
-	Unit<float, Base<Dim<1,1,1>, ratio<4,3>, ratio<4,3>, ratio<4,3>>> a(7);
-	auto a1 = unit_cast<Unit<float, Base<Dim<1,1,1>, ratio<3,2>, ratio<1,2>, ratio<1,3>>>>(a);
+	Unit<float, BaseUnit<Dim<1,1,1>, ratio<4,3>, ratio<4,3>, ratio<4,3>>> a(7);
+	auto a1 = unit_cast<Unit<float, BaseUnit<Dim<1,1,1>, ratio<3,2>, ratio<1,2>, ratio<1,3>>>>(a);
 	EXPECT_EQ(1, int(decltype(a1)::base::dim::d1));
 	EXPECT_EQ(1, int(decltype(a1)::base::dim::d2));
 	EXPECT_EQ(1, int(decltype(a1)::base::dim::d3));
 
-	Unit<float, Base<Dim<2,-3>, ratio<1>, ratio<1>>> b(7);
-	auto b1 = unit_cast<Unit<float, Base<Dim<2,-3>, ratio<1,39>, ratio<60,1>>>>(b);
+	Unit<float, BaseUnit<Dim<2,-3>, ratio<1>, ratio<1>>> b(7);
+	auto b1 = unit_cast<Unit<float, BaseUnit<Dim<2,-3>, ratio<1,39>, ratio<60,1>>>>(b);
 	EXPECT_EQ( 2, int(decltype(b1)::base::dim::d1));
 	EXPECT_EQ(-3, int(decltype(b1)::base::dim::d2));
 	EXPECT_EQ( 0, int(decltype(b1)::base::dim::d3));
 
 	// A unit cast only casts between units of equal dimensions.
-	Unit<float, Base<Dim<1,0,1>, ratio<4,3>, ratio<4,3>, ratio<4,3>>> c(7);
+	Unit<float, BaseUnit<Dim<1,0,1>, ratio<4,3>, ratio<4,3>, ratio<4,3>>> c(7);
 	// Should not compile: invalid operands to binary expression ('nful::Dim<1, 0, 1>' and 'nful::Dim<1, 1, 1>')
-	//auto c1 = unit_cast<Unit<float, Base<Dim<1,1,1>, ratio<3,2>, ratio<1,2>, ratio<1,3>>>>(c);
+	//auto c1 = unit_cast<Unit<float, BaseUnit<Dim<1,1,1>, ratio<3,2>, ratio<1,2>, ratio<1,3>>>>(c);
 }
 
 TEST(UnitTest, UnitCastType)
@@ -236,15 +236,15 @@ TEST(UnitTest, AddDim)
 	EXPECT_EQ(0, int(decltype(a1+a2)::base::dim::d2));
 	EXPECT_EQ(0, int(decltype(a1+a2)::base::dim::d3));
 
-	Unit<int, Base<Dim<0,1,0>,ratio<4,3>>> b1(10);
-	Unit<int, Base<Dim<0,1,0>,ratio<1,3>>> b2(40);
+	Unit<int, BaseUnit<Dim<0,1,0>,ratio<4,3>>> b1(10);
+	Unit<int, BaseUnit<Dim<0,1,0>,ratio<1,3>>> b2(40);
 	EXPECT_EQ(0, int(decltype(b1+b2)::base::dim::d1));
 	EXPECT_EQ(1, int(decltype(b1+b2)::base::dim::d2));
 	EXPECT_EQ(0, int(decltype(b1+b2)::base::dim::d3));
 
 	// Dim mismatch's should not compile
-	Unit<int, Base<Dim<1,1,0>>> c1(10);
-	Unit<int, Base<Dim<0,1,0>>> c2(40);
+	Unit<int, BaseUnit<Dim<1,1,0>>> c1(10);
+	Unit<int, BaseUnit<Dim<0,1,0>>> c2(40);
 	//c1 + c2;
 }
 
@@ -292,20 +292,20 @@ TEST(UnitTest, MultiplyDim)
 	EXPECT_EQ(0, int(decltype(a1*a2)::base::dim::d2));
 	EXPECT_EQ(0, int(decltype(a1*a2)::base::dim::d3));
 
-	Unit<int, Base<Dim<0,1,0>, ratio<4,3>>> b1(10);
-	Unit<int, Base<Dim<0,1,0>, ratio<1,3>>> b2(40);
+	Unit<int, BaseUnit<Dim<0,1,0>, ratio<4,3>>> b1(10);
+	Unit<int, BaseUnit<Dim<0,1,0>, ratio<1,3>>> b2(40);
 	EXPECT_EQ(0, int(decltype(b1*b2)::base::dim::d1));
 	EXPECT_EQ(2, int(decltype(b1*b2)::base::dim::d2));
 	EXPECT_EQ(0, int(decltype(b1*b2)::base::dim::d3));
 
-	Unit<int, Base<Dim<1,0,0>, ratio<2,3>>> c1(10);
-	Unit<int, Base<Dim<0,1,0>, ratio<4,3>>> c2(40);
+	Unit<int, BaseUnit<Dim<1,0,0>, ratio<2,3>>> c1(10);
+	Unit<int, BaseUnit<Dim<0,1,0>, ratio<4,3>>> c2(40);
 	EXPECT_EQ(1, int(decltype(c1*c2)::base::dim::d1));
 	EXPECT_EQ(1, int(decltype(c1*c2)::base::dim::d2));
 	EXPECT_EQ(0, int(decltype(c1*c2)::base::dim::d3));
 
-	Unit<int, Base<Dim<1,-1,1>, ratio<7,8>>> d1(10);
-	Unit<int, Base<Dim<0, 1,2>, ratio<8,9>>> d2(40);
+	Unit<int, BaseUnit<Dim<1,-1,1>, ratio<7,8>>> d1(10);
+	Unit<int, BaseUnit<Dim<0, 1,2>, ratio<8,9>>> d2(40);
 	EXPECT_EQ(1, int(decltype(d1*d2)::base::dim::d1));
 	EXPECT_EQ(0, int(decltype(d1*d2)::base::dim::d2));
 	EXPECT_EQ(3, int(decltype(d1*d2)::base::dim::d3));
@@ -356,14 +356,14 @@ TEST(UnitTest, DivDim)
 	EXPECT_EQ(0, int(decltype(a1/a2)::base::dim::d2));
 	EXPECT_EQ(0, int(decltype(a1/a2)::base::dim::d3));
 
-	Unit<float, Base<Dim<1,0,0>, ratio<2,3>>> b1(10);
-	Unit<float, Base<Dim<0,1,0>, ratio<4,3>>> b2(40);
+	Unit<float, BaseUnit<Dim<1,0,0>, ratio<2,3>>> b1(10);
+	Unit<float, BaseUnit<Dim<0,1,0>, ratio<4,3>>> b2(40);
 	EXPECT_EQ( 1, int(decltype(b1/b2)::base::dim::d1));
 	EXPECT_EQ(-1, int(decltype(b1/b2)::base::dim::d2));
 	EXPECT_EQ( 0, int(decltype(b1/b2)::base::dim::d3));
 
-	Unit<float, Base<Dim<1,-1,1>, ratio<7,8>>> d1(10);
-	Unit<float, Base<Dim<0, 1,2>, ratio<8,9>>> d2(40);
+	Unit<float, BaseUnit<Dim<1,-1,1>, ratio<7,8>>> d1(10);
+	Unit<float, BaseUnit<Dim<0, 1,2>, ratio<8,9>>> d2(40);
 	EXPECT_EQ( 1, int(decltype(d1/d2)::base::dim::d1));
 	EXPECT_EQ(-2, int(decltype(d1/d2)::base::dim::d2));
 	EXPECT_EQ(-1, int(decltype(d1/d2)::base::dim::d3));
@@ -432,7 +432,7 @@ TEST(UnitTest, ScalarMultiplyDim)
 	EXPECT_EQ(0, int(decltype(2*a)::base::dim::d2));
 	EXPECT_EQ(0, int(decltype(2*a)::base::dim::d3));
 
-	Unit<int, Base<Dim<0,1,0>, ratio<4,3>>> b(10);
+	Unit<int, BaseUnit<Dim<0,1,0>, ratio<4,3>>> b(10);
 	EXPECT_EQ(0, int(decltype(b*2)::base::dim::d1));
 	EXPECT_EQ(1, int(decltype(b*2)::base::dim::d2));
 	EXPECT_EQ(0, int(decltype(b*2)::base::dim::d3));
@@ -491,7 +491,7 @@ TEST(UnitTest, ScalarDivDim)
 	EXPECT_EQ(0, int(decltype(a/2)::base::dim::d2));
 	EXPECT_EQ(0, int(decltype(a/2)::base::dim::d3));
 
-	Unit<int, Base<Dim<0,1,0>, ratio<4,3>>> b(10);
+	Unit<int, BaseUnit<Dim<0,1,0>, ratio<4,3>>> b(10);
 	EXPECT_EQ(0, int(decltype(b/2)::base::dim::d1));
 	EXPECT_EQ(1, int(decltype(b/2)::base::dim::d2));
 	EXPECT_EQ(0, int(decltype(b/2)::base::dim::d3));
