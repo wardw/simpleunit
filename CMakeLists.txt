@@ -4,7 +4,7 @@ project(nful)
 # Tested only on OS X
 # Set GTEST_ROOT to point to your GTEST installation
 
-option(BUILD_GTEST "Build GTest with this project" OFF)
+option(BUILD_GTEST "Build GTest with this project" ON)
 
 if(DEFINED ENV{GTEST_ROOT})
 	message("Gtest found at $ENV{GTEST_ROOT}")
@@ -22,13 +22,13 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
 
 enable_testing()
 
-include_directories(".")
-include_directories("${GTEST_ROOT}/include")
+include_directories("." "${GTEST_ROOT}/include")
 add_executable(nful ${gtest_src})
 
 
 if(BUILD_GTEST)
-	# todo: mkdir gtest
+	# Tested with GTest 1.7.0
+	file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/gtest")
 	add_subdirectory($ENV{GTEST_ROOT} "${CMAKE_BINARY_DIR}/gtest")
 	target_link_libraries(nful gtest gtest_main pthread)
 else()
