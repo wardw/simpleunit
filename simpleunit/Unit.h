@@ -2,7 +2,7 @@
 #include <chrono>
 #include <ratio>
 
-namespace nful {
+namespace sunit {
 
 namespace
 {
@@ -25,7 +25,7 @@ struct Dim {
 
 template <int A1, int A2, int A3, int B1, int B2, int B3>
 Dim<A1+B1, A2+B2, A3+B3> operator*(Dim<A1, A2, A3> lhs,
-	                                     Dim<B1, B2, B3> rhs) {
+	                               Dim<B1, B2, B3> rhs) {
 	return Dim<A1+B1, A2+B2, A3+B3>();
 }
 
@@ -34,13 +34,13 @@ using DimMultiply = Dim<A1+B1, A2+B2, A3+B3>;
 
 template <int A1, int l1, int A3, int B1, int B2, int B3>
 Dim<A1-B1, l1-B2, A3-B3> operator/(Dim<A1, l1, A3> lhs,
-	                                     Dim<B1, B2, B3> rhs) {
+	                               Dim<B1, B2, B3> rhs) {
 	return Dim<A1-B1, l1-B2, A3-B3>();
 }
 
 template <int A1, int A2, int A3>
 Dim<A1, A2, A3> operator+(Dim<A1, A2, A3> lhs,
-	                            Dim<A1, A2, A3> rhs) {
+	                      Dim<A1, A2, A3> rhs) {
 	return Dim<A1, A2, A3>();
 }
 
@@ -78,7 +78,7 @@ constexpr int64_t dividend(int64_t a, int exp) {
 	else          return ipow(a, iabs(exp));
 }
 
-// Take positive powers of inverse quotients (rather than negative powers)
+// Take positive powers of the quotient's inverse, rather than negative powers
 constexpr int64_t power_flip(int64_t a, int64_t b, int exp) {
 	if (exp == 0) return 1;
 	else          return ipow(exp > 0 ? a : b, iabs(exp));
@@ -356,4 +356,4 @@ std::ostream& operator<<(std::ostream& os, const si::m_s& q)
 std::ostream& operator<<(std::ostream& os, const si::in_hr& q)
 { return os << q.value() << " in/hr"; }
 
-} // nful
+} // sunit

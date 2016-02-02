@@ -1,11 +1,10 @@
+#include "simpleunit/Unit.h"
 #include <iostream>
 #include <ratio>
 #include "gtest/gtest.h"
 
-#include "nful/Unit.h"
-
 using namespace std;
-using namespace nful;
+using namespace sunit;
 
 TEST(UnitTest, ImplicitConversion)
 {
@@ -159,7 +158,7 @@ TEST(UnitTest, UnitCastDim)
 
 	// A unit cast only casts between units of equal dimensions.
 	Unit<float, BaseUnit<Dim<1,0,1>, ratio<4,3>, ratio<4,3>, ratio<4,3>>> c(7);
-	// Should not compile: invalid operands to binary expression ('nful::Dim<1, 0, 1>' and 'nful::Dim<1, 1, 1>')
+	// Should not compile: invalid operands to binary expression ('sunit::Dim<1, 0, 1>' and 'sunit::Dim<1, 1, 1>')
 	//auto c1 = unit_cast<Unit<float, BaseUnit<Dim<1,1,1>, ratio<3,2>, ratio<1,2>, ratio<1,3>>>>(c);
 }
 
@@ -535,7 +534,7 @@ TEST(UnitTest, ScalarDivType)
 
 TEST(UnitTest, ReadmeExample)
 {
-	using namespace nful::si;
+	using namespace sunit::si;
 
 	Meters height(5);
 	Centimeters width(200);
@@ -545,7 +544,7 @@ TEST(UnitTest, ReadmeExample)
 	auto flowrate = width * height / Seconds(132);
 	cout << "flowrate = " << flowrate.as<Inches2_Second>() << endl;
 
-    auto f2 = nful::unit_cast<Inches2_Second>(flowrate);
+    auto f2 = sunit::unit_cast<Inches2_Second>(flowrate);
 	cout << "f2 = " << f2 << endl;
 
 	//auto foo = height + Seconds(2);  // Compile error: invalid operands 'Meters' and 'Seconds'

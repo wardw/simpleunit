@@ -1,16 +1,16 @@
 
-### Nful - No frills units library
+### Simpleunit - C++ units library
 
-A simple C++ units library with compile-time unit checking and automatic arithmetic conversions between quantities/dimensions. The method makes use of Barton & Nackman's method for dimensional analysis [1] and a method for representing quantities similar in style to the approach of `std::chrono` for representing durations of time. The result is a `Unit` type consistent in semantics to `std::chrono::duration` but extended to arbitrary dimensions.
+A simple C++ units library with compile-time unit checking and automatic arithmetic conversions between quantities and dimensions. The method makes use of Barton & Nackman's method for dimensional analysis [1] and a method for representing quantities similar in style to the approach of `std::chrono` for representing durations of time. The result is a `Unit` type consistent in semantics to `std::chrono::duration` but extended to arbitrary dimensions.
 
 Under the `Unit` abstraction, the class has a single type `T` to represent the unit's value. An object of type `Unit` should therefore compile equivalently to using `T` directly, i.e. the object will be of the same size.
 
-The library is header only, with a single header `nful/Unit.h`. If you want to build the tests there is a CMakeLists.txt for building the tests with CMake and Google Test.
+The library is header only, with a single header `simpleunit/Unit.h`. If you want to build the tests there is a CMakeLists.txt for building the tests with CMake and Google Test.
 
 #### Example
 
-	#include "nful/Unit.h"
-	using namespace nful::si;
+	#include "simpleunit/Unit.h"
+	using namespace sunit::si;
 
 	Meters height(5);
 	Centimeters width(200);
@@ -27,7 +27,7 @@ The resultant type of the expression is consistent with the dimensions of the op
 
 or alternatively by a `unit_cast`
 
-    auto f2 = nful::unit_cast<Inches2_Second>(flowrate);
+    auto f2 = sunit::unit_cast<Inches2_Second>(flowrate);
 
 Since a unit's dimensionality is encoded within the type, all operations are checked at compile time for errors between incompatible dimensions. Arithmetic operations are defined only for those operations that are valid and consistent with the algebra. Attempting
 
@@ -41,7 +41,7 @@ A `unit_cast` follows the same constraints in checking for dimensional consisten
 
 ### The `Unit` type
 
-Units like `Centimeters` and `Meters_Second` are simple type aliases for a general `Unit` type, and so give convenient names to those units most used in practice. Some common SI units are defined in `nful::si` (todo!), but it is straightforward to alias new types as necessary.  For example, `Meters_Second` is
+Units like `Centimeters` and `Meters_Second` are simple type aliases for a general `Unit` type, and so give convenient names to those units most used in practice. Some common SI units are defined in `sunit::si` (todo!), but it is straightforward to alias new types as necessary.  For example, `Meters_Second` is
 
 	using Meters_Second = Unit<float, Velocity<meter, second>>;
 
@@ -82,15 +82,15 @@ This starts to get quite syntactically noisy, but in practice the intention is t
 
 A `Unit` looks like
 
-	nful::Unit<T, BaseUnit>
+	sunit::Unit<T, BaseUnit>
 
 with a `BaseUnit` comprising of a dimension `Dim` and scales `r1 .. r7`
 
-	nful::BaseUnit<Dim, r1, r2, r3, .., r7>
+	sunit::BaseUnit<Dim, r1, r2, r3, .., r7>
 
 A `Dim` represents each dimension by its exponent
 
-    nful::Dim<d1,d2,d3,d4,d5,d6,d7>
+    sunit::Dim<d1,d2,d3,d4,d5,d6,d7>
 
 where each dimension `d1 .. d7` must match the scale `r1 .. r7`.
 
